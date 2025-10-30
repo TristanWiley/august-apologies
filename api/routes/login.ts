@@ -122,13 +122,13 @@ export const loginRoute = async (
   }
 
   // Update account with new Twitch id and auth token
-  const sessionId = await connection.createUser({
+  const data = await connection.createUser({
     id,
     displayName: display_name,
   });
 
   // If the result is not ok, return a 500 response
-  if (!sessionId) {
+  if (!data) {
     return generateJSONResponse(
       {
         message:
@@ -146,7 +146,9 @@ export const loginRoute = async (
       data: {
         twitchID: id,
         twitchUsername: display_name,
-        sessionId: sessionId,
+        sessionId: data.sessionId,
+        subject: data.subject,
+        apology: data.apology,
       },
     },
     200

@@ -24,8 +24,18 @@ export const LoginPage: React.FC = () => {
           throw new Error("Failed to authenticate with Twitch");
         }
 
-        const data = await response.json();
+        const { data } = await response.json();
         const sessionId = data.sessionId;
+        const subject = data.subject;
+        const apology = data.apology;
+
+        if (subject) {
+          localStorage.setItem("august-temp-subject", subject);
+        }
+
+        if (apology) {
+          localStorage.setItem("august-temp-apology", apology);
+        }
 
         localStorage.setItem("august-session-id", sessionId);
         window.location.reload();

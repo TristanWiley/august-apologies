@@ -3,6 +3,7 @@
   "name": "august-apology",
   "compatibility_date": "2025-10-29",
   "main": "./api/index.ts",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "not_found_handling": "single-page-application"
   },
