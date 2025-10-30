@@ -3,11 +3,17 @@
   "name": "august-apology",
   "compatibility_date": "2025-10-29",
   "main": "./api/index.ts",
+  "assets": {
+    "not_found_handling": "single-page-application"
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_id": "6b91fa78-2d1a-4848-bd22-2af23535a8aa",
       "remote": true
     }
-  ]
+  ],
+  "vars": {
+    "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk"
+  }
 }

@@ -1,20 +1,34 @@
-import { useState } from "react";
-import { LoginPage } from "./components/login-page";
-import { ApologySubmission } from "./components/apology-submission";
 import { DvdScreensaver } from "react-dvd-screensaver";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { ApologySubmission } from "./components/apology-submission";
+import { LoginPage } from "./components/login-page";
+import React from "react";
+import { TwitchCallbackPage } from "./components/twitch-callback";
 
 export const App = () => {
-  const [sessionId, setSessionId] = useState<string | null>(
-    localStorage.getItem("august-session-id") || null
+  const sessionId = localStorage.getItem("august-session-id");
+
+  const content = (
+    <BrowserRouter>
+      <Routes>
+        {sessionId ? (
+          <React.Fragment>
+            <Route path="/apology" element={<ApologySubmission />} />
+            {/* default redirect to main page */}
+            <Route path="*" element={<Navigate to="/apology" />} />
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* default redirect to login page */}
+            <Route path="*" element={<Navigate to="/login" />} />
+          </React.Fragment>
+        )}
+        <Route path="/twitch-callback" element={<TwitchCallbackPage />} />
+      </Routes>
+    </BrowserRouter>
   );
-
-  let content = null;
-
-  if (!sessionId) {
-    content = <LoginPage onLoginSuccess={(token) => setSessionId(token)} />;
-  } else {
-    content = <ApologySubmission sessionId={sessionId} />;
-  }
 
   return (
     <div className="w-full h-full">
@@ -24,7 +38,7 @@ export const App = () => {
         <button
           onClick={() => {
             localStorage.removeItem("august-session-id");
-            setSessionId(null);
+            window.location.reload();
           }}
           className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition cursor-pointer z-10"
         >

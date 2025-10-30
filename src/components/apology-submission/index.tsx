@@ -1,10 +1,4 @@
-type Props = {
-  sessionId: string;
-};
-
-export const ApologySubmission: React.FC<Props> = ({ sessionId }) => {
-  console.log(sessionId);
-
+export const ApologySubmission: React.FC = () => {
   return (
     <div>
       <h2>Apology Submission</h2>

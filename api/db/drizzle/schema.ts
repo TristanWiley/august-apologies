@@ -6,4 +6,5 @@ export const apologies = sqliteTable("apologies", {
   twitch_username: text().notNull(),
   subject: text(),
   apology_text: text(),
+  session_id: text(),
 });
