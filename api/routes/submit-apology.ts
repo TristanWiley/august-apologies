@@ -3,9 +3,6 @@ import { DB } from "../db";
 import { generateJSONResponse } from "../utils";
 import sanitizeHtml from "sanitize-html";
 
-/**
- * Route to handle logging in a Twitch user
- */
 export const submitApologyRoute = async (
   request: IRequest,
   env: Env

@@ -4,6 +4,7 @@ import { ApologySubmission } from "./components/apology-submission";
 import { LoginPage } from "./components/login-page";
 import React from "react";
 import { TwitchCallbackPage } from "./components/twitch-callback";
+import { ApologyView } from "./components/apology-view";
 
 export const App = () => {
   const sessionId = localStorage.getItem("august-session-id");
@@ -26,6 +27,7 @@ export const App = () => {
           </React.Fragment>
         )}
         <Route path="/twitch-callback" element={<TwitchCallbackPage />} />
+        <Route path="/view/:id" element={<ApologyView />} />
       </Routes>
     </BrowserRouter>
   );

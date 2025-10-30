@@ -1,6 +1,7 @@
 import { AutoRouter, cors } from "itty-router";
 import { loginRoute } from "./routes/login";
-import { submitApologyRoute } from "./routes/apology";
+import { submitApologyRoute } from "./routes/submit-apology";
+import { getApologyRoute } from "./routes/get-apology";
 
 const { preflight, corsify } = cors();
 
@@ -17,5 +18,6 @@ router.get("/session", () => {
 router.post("/login", loginRoute);
 
 router.post("/apologies", submitApologyRoute);
+router.get("/apologies/:id", getApologyRoute);
 
 export default { ...router };

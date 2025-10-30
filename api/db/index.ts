@@ -76,4 +76,27 @@ export class DB {
 
     return response.meta.changes > 0;
   }
+
+  public async getApologyByID(apologyID: string): Promise<{
+    username: string;
+    subject: string;
+    apology: string;
+  } | null> {
+    const record = await this.db
+      .select()
+      .from(schema.apologies)
+      .where(eq(schema.apologies.twitch_id, apologyID))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (!record || !record.apology_text || !record.subject) {
+      return null;
+    }
+
+    return {
+      username: record.twitch_username,
+      subject: record.subject,
+      apology: record.apology_text,
+    };
+  }
 }
