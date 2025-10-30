@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "august-apology",
+  "compatibility_date": "2025-10-29",
+  "main": "./api/index.ts",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "6b91fa78-2d1a-4848-bd22-2af23535a8aa",
+      "remote": true
+    }
+  ]
+}
