@@ -47,6 +47,8 @@ export const ApologySubmission: React.FC = () => {
 
     setSubmitted(true);
     localStorage.removeItem("august-session-id");
+    localStorage.removeItem("august-temp-apology");
+    localStorage.removeItem("august-temp-subject");
   }, [apology, subject]);
 
   if (submitted) {
