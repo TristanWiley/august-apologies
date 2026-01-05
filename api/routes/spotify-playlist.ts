@@ -118,8 +118,9 @@ export const spotifyPlaylistRoute = async (
       spotifyTokenExpiresAt = now + (tokenJSON.expires_in ?? 3600) - 30; // 30s buffer
     }
 
-    const res = await fetch(
-      `https://api.spotify.com/v1/playlists/${PLAYLIST_ID}?fields=id,name,description,images,tracks.items(track(name,uri,artists(name),duration_ms,external_urls,album(name),started_at))`,
+    // Fetch playlist metadata first (without tracks)
+    const metaRes = await fetch(
+      `https://api.spotify.com/v1/playlists/${PLAYLIST_ID}?fields=id,name,description,images`,
       {
         headers: {
           Authorization: `Bearer ${spotifyToken}`,
@@ -127,33 +128,61 @@ export const spotifyPlaylistRoute = async (
       }
     );
 
-    if (!res.ok) {
-      console.error("spotify playlist fetch failed", await res.text());
+    if (!metaRes.ok) {
+      console.error("spotify playlist meta fetch failed", await metaRes.text());
       return generateJSONResponse(
-        { message: "Failed to fetch playlist from Spotify" },
+        { message: "Failed to fetch playlist metadata from Spotify" },
         500
       );
     }
 
-    const json = (await res.json()) as SpotifyPlaylistResponse;
+    const metaJson = (await metaRes.json()) as SpotifyPlaylistResponse;
+
+    // Now page through tracks to collect all items (Spotify paginates tracks)
+    type TracksPageResponse = { items?: SpotifyTrackItem[]; total?: number; next?: string };
+    const limit = 100;
+    let offset = 0;
+    const allItems: SpotifyTrackItem[] = [];
+
+    while (true) {
+      const pageRes = await fetch(
+        `https://api.spotify.com/v1/playlists/${PLAYLIST_ID}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name,uri,artists(name),duration_ms,external_urls,album(name))),total,next`,
+        {
+          headers: { Authorization: `Bearer ${spotifyToken}` },
+        }
+      );
+
+      if (!pageRes.ok) {
+        console.error("spotify playlist page fetch failed", await pageRes.text());
+        return generateJSONResponse({ message: "Failed to fetch playlist tracks from Spotify" }, 500);
+      }
+
+      const pageJson = (await pageRes.json()) as TracksPageResponse;
+      const items = pageJson.items ?? [];
+      allItems.push(...items);
+
+      if (!pageJson.next || items.length === 0) break;
+      offset += items.length;
+
+      // safety: avoid infinite loops
+      if (offset > 10000) break;
+    }
 
     // Simplify tracks
-    const tracks = (json.tracks?.items || []).map(
-      (it: SpotifyTrackItem, idx: number) => ({
-        id: it.track?.uri ?? `${json.id}:${idx}`,
-        name: it.track?.name ?? "",
-        artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
-        duration_ms: it.track?.duration_ms ?? 0,
-        external_url: it.track?.external_urls?.spotify ?? null,
-        album: it.track?.album?.name ?? null,
-      })
-    );
+    const tracks = allItems.map((it: SpotifyTrackItem, idx: number) => ({
+      id: it.track?.uri ?? `${metaJson.id}:${idx}`,
+      name: it.track?.name ?? "",
+      artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
+      duration_ms: it.track?.duration_ms ?? 0,
+      external_url: it.track?.external_urls?.spotify ?? null,
+      album: it.track?.album?.name ?? null,
+    }));
 
     cachedPlaylist = {
-      id: json.id,
-      name: json.name,
-      description: decodeHtmlEntities(json.description),
-      images: json.images ?? [],
+      id: metaJson.id,
+      name: metaJson.name,
+      description: decodeHtmlEntities(metaJson.description),
+      images: metaJson.images ?? [],
       tracks,
     };
 

@@ -35,6 +35,10 @@ export const PlaylistPage: React.FC = () => {
   const [playlist, setPlaylist] = React.useState<Playlist | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Pagination state
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+
   React.useEffect(() => {
     let mounted = true;
 
@@ -59,6 +63,22 @@ export const PlaylistPage: React.FC = () => {
       mounted = false;
     };
   }, []);
+
+  // Reset to first page when playlist or page size changes
+  React.useEffect(() => setPage(1), [playlist, pageSize]);
+
+  const totalPages = playlist && playlist.tracks ? Math.max(1, Math.ceil(playlist.tracks.length / pageSize)) : 1;
+  const paginated = playlist ? playlist.tracks.slice((page - 1) * pageSize, page * pageSize) : [];
+
+  const pageWindow = (() => {
+    const max = 7;
+    const pages: number[] = [];
+    let start = Math.max(1, page - Math.floor(max / 2));
+    let end = Math.min(totalPages, start + max - 1);
+    if (end - start + 1 < max) start = Math.max(1, end - max + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return { pages, start, end };
+  })();
 
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
