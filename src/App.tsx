@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApologySubmission } from "./components/apology-submission";
 import { HomePage } from "./components/homepage";
 import { PlaylistPage } from "./components/playlist";
+import { ApologiesPage } from "./components/apologies";
 import { TwitchCallbackPage } from "./components/twitch-callback";
 import { ApologyView } from "./components/apology-view";
 import { LoginPage } from "./components/login-page";
@@ -14,6 +15,7 @@ export const App = () => {
   const routes = [
     { path: "/", element: <HomePage />, auth: false },
     { path: "/apology", element: <ApologySubmission />, auth: true },
+    { path: "/apologies", element: <ApologiesPage />, auth: false },
     { path: "/playlist", element: <PlaylistPage />, auth: false },
     { path: "/login", element: <LoginPage />, auth: false },
     { path: "/twitch-callback", element: <TwitchCallbackPage />, auth: false },

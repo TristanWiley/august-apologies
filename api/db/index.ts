@@ -3,12 +3,9 @@ import * as schema from "./drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export class DB {
-  private env: Env;
   private db: DrizzleD1Database<typeof schema>;
 
   constructor(env: Env) {
-    this.env = env;
-
     const db = drizzle(env.DB, {
       schema,
       logger: false,
@@ -98,5 +95,35 @@ export class DB {
       subject: record.subject,
       apology: record.apology_text,
     };
+  }
+
+  public async listPublicApologies({ limit = 10, offset = 0 }: { limit?: number; offset?: number; } = {}): Promise<{ items: { id: string; username: string; subject: string; excerpt: string }[]; total: number }>{
+    // Get total
+    const all = await this.db
+      .select()
+      .from(schema.apologies)
+      .then((r) => r.filter((row) => row.apology_text && row.subject));
+
+    const total = all.length;
+
+    const rows = await this.db
+      .select({ id: schema.apologies.twitch_id, username: schema.apologies.twitch_username, subject: schema.apologies.subject, apology: schema.apologies.apology_text })
+      .from(schema.apologies)
+      .limit(limit)
+      .offset(offset)
+      .then((r) => r.filter((row) => row.apology && row.subject));
+    const stripHtml = (s: string | null | undefined) => {
+      if (!s) return "";
+      return s.replace(/<[^>]+>/g, "").slice(0, 240);
+    };
+
+    const items = rows.map((r: { id: string; username: string; subject: string | null; apology: string | null }) => ({
+      id: r.id as string,
+      username: r.username as string,
+      subject: r.subject as string,
+      excerpt: stripHtml(r.apology as string),
+    }));
+
+    return { items, total };
   }
 }

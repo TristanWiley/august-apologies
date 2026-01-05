@@ -12,6 +12,7 @@ import {
   Toolbar,
 } from "react-simple-wysiwyg";
 import { Nav } from "../nav";
+import { Link } from "react-router";
 
 export const ApologySubmission: React.FC = () => {
   const [apology, setApology] = useState(
@@ -58,7 +59,9 @@ export const ApologySubmission: React.FC = () => {
         <div className="flex items-center justify-center h-full flex-col gap-4 px-4">
           <Nav />
           <div className="w-full max-w-3xl flex flex-col items-center gap-2">
-            <h1 className="text-2xl font-bold">Apology Submitted</h1>
+            <h1 className="text-center text-2xl font-bold">
+              Apology Submitted
+            </h1>
             <p className="text-center text-xl">
               We hope you learn your lesson.
             </p>
@@ -74,7 +77,7 @@ export const ApologySubmission: React.FC = () => {
         <Nav />
 
         <div className="w-full max-w-3xl flex flex-col items-stretch gap-4">
-          <h1 className="text-2xl font-bold">Apology Submission</h1>
+          <h1 className="text-center text-2xl font-bold">Apology Submission</h1>
           <p className="text-center text-xl">
             This is where you apologize for your mistakes. Subject is required.
           </p>
@@ -118,6 +121,21 @@ export const ApologySubmission: React.FC = () => {
             >
               Submit Apology
             </button>
+          </div>
+
+          <div className="mt-4 p-3 border rounded bg-slate-900/40">
+            <h3 className="text-lg font-semibold">Public apologies</h3>
+            <p className="text-sm text-slate-300 mt-1">
+              View all the silly chatters who have publicly apologized.
+            </p>
+            <div className="mt-3">
+              <Link
+                to="/apologies"
+                className="text-sm text-[#1DB954] hover:underline"
+              >
+                View public apologies
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { AutoRouter, cors } from "itty-router";
 import { loginRoute } from "./routes/login";
 import { submitApologyRoute } from "./routes/submit-apology";
 import { getApologyRoute } from "./routes/get-apology";
+import { listApologiesRoute } from "./routes/list-apologies";
 import { twitchStatusRoute } from "./routes/twitch-status";
 import { spotifyPlaylistRoute } from "./routes/spotify-playlist";
 
@@ -23,6 +24,7 @@ router.get("/spotify/playlist", spotifyPlaylistRoute);
 router.post("/login", loginRoute);
 
 router.post("/apologies", submitApologyRoute);
+router.get("/apologies", listApologiesRoute);
 router.get("/apologies/:id", getApologyRoute);
 
 export default { ...router };

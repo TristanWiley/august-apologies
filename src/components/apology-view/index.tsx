@@ -51,7 +51,8 @@ export const ApologyView: React.FC = () => {
     );
   }
 
-  if (!username || !apology || !subject) {
+  // If username or subject is missing, treat as not found. Allow empty apology text to render (it may be intentionally blank).
+  if (!username || !subject) {
     return (
       <div className="flex items-center justify-center h-full flex-col gap-4 px-4">
         <Nav />
@@ -68,17 +69,10 @@ export const ApologyView: React.FC = () => {
         <Nav />
 
         <div className="w-full max-w-3xl flex flex-col items-stretch gap-4">
-          <h1 className="text-2xl font-bold">
-            Apology Submission from {username}
-          </h1>
+          <h1 className="text-2xl font-bold">Apology Submission from {username}</h1>
 
           <div className="w-full">
-            <input
-              placeholder="Subject"
-              className="w-full mb-2 p-2 border"
-              defaultValue={subject}
-              disabled
-            />
+            <input placeholder="Subject" className="w-full mb-2 p-2 border" defaultValue={subject} disabled />
             <Editor
               containerProps={{
                 style: {
@@ -87,7 +81,7 @@ export const ApologyView: React.FC = () => {
                   fontFamily: "Times New Roman, serif",
                 },
               }}
-              defaultValue={apology}
+              value={apology ?? ""}
               disabled={true}
             />
           </div>

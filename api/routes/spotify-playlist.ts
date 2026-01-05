@@ -139,7 +139,11 @@ export const spotifyPlaylistRoute = async (
     const metaJson = (await metaRes.json()) as SpotifyPlaylistResponse;
 
     // Now page through tracks to collect all items (Spotify paginates tracks)
-    type TracksPageResponse = { items?: SpotifyTrackItem[]; total?: number; next?: string };
+    type TracksPageResponse = {
+      items?: SpotifyTrackItem[];
+      total?: number;
+      next?: string;
+    };
     const limit = 100;
     let offset = 0;
     const allItems: SpotifyTrackItem[] = [];
@@ -153,8 +157,14 @@ export const spotifyPlaylistRoute = async (
       );
 
       if (!pageRes.ok) {
-        console.error("spotify playlist page fetch failed", await pageRes.text());
-        return generateJSONResponse({ message: "Failed to fetch playlist tracks from Spotify" }, 500);
+        console.error(
+          "spotify playlist page fetch failed",
+          await pageRes.text()
+        );
+        return generateJSONResponse(
+          { message: "Failed to fetch playlist tracks from Spotify" },
+          500
+        );
       }
 
       const pageJson = (await pageRes.json()) as TracksPageResponse;
