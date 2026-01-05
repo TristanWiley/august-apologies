@@ -76,11 +76,18 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     if (scriptStatus !== "ready") return;
 
-    const options = {
+    const options: {
+      width: string | number;
+      height: string | number;
+      channel: string;
+      parent: string[];
+      autoplay?: boolean;
+    } = {
       width: "100%",
       height: "100%",
       channel: channel,
       parent: [window.location.hostname],
+      autoplay: false,
     };
 
     try {
@@ -163,27 +170,29 @@ export const HomePage: React.FC = () => {
           ) : null}
         </h1>
 
-        <div className="w-full h-[38vh] md:h-[420px] max-h-[calc(100vh-22rem)] border rounded-md overflow-hidden">
-          <div id="twitch-player" className="w-full h-full" />
-        </div>
+        <div className="w-[960px] h-[540px]">
+          <div
+            id="twitch-player"
+            className="w-full h-full  border rounded-md overflow-hidden"
+          />
 
-        {/* viewer count and duration below the stream, bottom-right like Twitch */}
-        {isLive ? (
-          <div className="w-full flex justify-end">
-            <div className="flex flex-col items-end space-y-1">
-              <div className="text-sm font-semibold text-red-400 bg-red-900/20 px-2 py-1 rounded">
-                {viewerCount !== null
-                  ? `${viewerCount.toLocaleString()} viewers`
-                  : "Live"}
-              </div>
-              {duration ? (
-                <div className="text-xs text-red-300 bg-red-900/10 px-2 py-0.5 rounded">
-                  {duration}
+          {isLive ? (
+            <div className="w-full flex justify-end mt-2">
+              <div className="flex flex-col items-end space-y-1">
+                <div className="text-sm font-semibold text-red-400 bg-red-900/20 px-2 py-1 rounded">
+                  {viewerCount !== null
+                    ? `${viewerCount.toLocaleString()} viewers`
+                    : "Live"}
                 </div>
-              ) : null}
+                {duration ? (
+                  <div className="text-xs text-red-300 bg-red-900/10 px-2 py-0.5 rounded">
+                    {duration}
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
         {/* 
         <div className="w-full flex justify-center">
