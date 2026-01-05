@@ -32,7 +32,7 @@ export const ApologyView: React.FC = () => {
     };
 
     fetchApology();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (
@@ -66,8 +66,8 @@ export const ApologyView: React.FC = () => {
           <input
             placeholder="Subject"
             className="w-full mb-2 p-2 border"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
+            defaultValue={subject}
+            disabled
           />
           <Editor
             containerProps={{
@@ -77,8 +77,8 @@ export const ApologyView: React.FC = () => {
                 fontFamily: "Times New Roman, serif",
               },
             }}
-            value={apology}
-            onChange={(e) => setApology(e.target.value)}
+            defaultValue={apology}
+            disabled={true}
           />
         </div>
       </div>

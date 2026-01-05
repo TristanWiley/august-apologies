@@ -1,33 +1,39 @@
 import { DvdScreensaver } from "react-dvd-screensaver";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApologySubmission } from "./components/apology-submission";
-import { LoginPage } from "./components/login-page";
-import React from "react";
+import { HomePage } from "./components/homepage";
 import { TwitchCallbackPage } from "./components/twitch-callback";
 import { ApologyView } from "./components/apology-view";
+import { LoginPage } from "./components/login-page";
 
 export const App = () => {
   const sessionId = localStorage.getItem("august-session-id");
 
+  // Centralized route config — add new routes here as needed
+  const routes = [
+    { path: "/", element: <HomePage />, auth: false },
+    { path: "/apology", element: <ApologySubmission />, auth: true },
+    { path: "/login", element: <LoginPage />, auth: false },
+    { path: "/twitch-callback", element: <TwitchCallbackPage />, auth: false },
+    { path: "/view/:id", element: <ApologyView />, auth: false },
+  ];
+
   const content = (
     <BrowserRouter>
       <Routes>
-        {sessionId ? (
-          <React.Fragment>
-            <Route path="/apology" element={<ApologySubmission />} />
-            {/* default redirect to main page */}
-            <Route path="*" element={<Navigate to="/apology" />} />
-          </React.Fragment>
-        ) : (
-          <React.Fragment>
-            <Route path="/login" element={<LoginPage />} />
-
-            {/* default redirect to login page */}
-            <Route path="*" element={<Navigate to="/login" />} />
-          </React.Fragment>
+        {routes.map((r) =>
+          r.auth && !sessionId ? (
+            <Route
+              key={r.path}
+              path={r.path}
+              element={<Navigate to={`/login?redirect=${r.path}`} />}
+            />
+          ) : (
+            <Route key={r.path} path={r.path} element={r.element} />
+          )
         )}
-        <Route path="/twitch-callback" element={<TwitchCallbackPage />} />
-        <Route path="/view/:id" element={<ApologyView />} />
+
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );
