@@ -193,16 +193,6 @@ export const HomePage: React.FC = () => {
             </div>
           ) : null}
         </div>
-
-        {/* 
-        <div className="w-full flex justify-center">
-          <button
-            onClick={() => window.open(twitchAuthURL, "_blank")}
-            className="bg-[#8956FB] text-white px-4 py-2 rounded-md hover:bg-[#6f40d8] transition cursor-pointer shadow-sm"
-          >
-            Log in with Twitch
-          </button>
-        </div> */}
       </main>
     </div>
   );
