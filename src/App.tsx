@@ -40,21 +40,7 @@ export const App = () => {
 
   return (
     <div className="w-full h-full">
-      <div className="w-full h-full">{content}</div>
-
-      {sessionId && (
-        <button
-          onClick={() => {
-            localStorage.removeItem("august-session-id");
-            localStorage.removeItem("august-temp-apology");
-            localStorage.removeItem("august-temp-subject");
-            window.location.reload();
-          }}
-          className="absolute bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition cursor-pointer z-10"
-        >
-          Log out
-        </button>
-      )}
+      <div className="w-full h-full pt-20">{content}</div>
 
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-50">
         <DvdScreensaver>

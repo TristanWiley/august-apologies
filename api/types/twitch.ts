@@ -23,3 +23,21 @@ export interface TwitchHelixUsersData {
 export interface TwitchHelixUsersResponse {
   data: TwitchHelixUsersData[];
 }
+
+export interface TwitchHelixStreamsData {
+  id: string;
+  user_id: string;
+  user_login: string;
+  user_name: string;
+  game_id: string;
+  community_ids: string[];
+  type: string;
+  title: string;
+  viewer_count: number;
+  started_at: string;
+  language: string;
+}
+
+export interface TwitchHelixStreamsResponse {
+  data: TwitchHelixStreamsData[];
+}
