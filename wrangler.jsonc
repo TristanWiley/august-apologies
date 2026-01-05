@@ -15,6 +15,7 @@
     }
   ],
   "vars": {
-    "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk"
+    "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk",
+    "SPOTIFY_CLIENT_ID": "0b9ad9516134433580037eb764782952"
   }
 }
