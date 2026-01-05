@@ -69,10 +69,17 @@ export const ApologyView: React.FC = () => {
         <Nav />
 
         <div className="w-full max-w-3xl flex flex-col items-stretch gap-4">
-          <h1 className="text-2xl font-bold">Apology Submission from {username}</h1>
+          <h1 className="text-2xl font-bold">
+            Apology Submission from {username}
+          </h1>
 
           <div className="w-full">
-            <input placeholder="Subject" className="w-full mb-2 p-2 border" defaultValue={subject} disabled />
+            <input
+              placeholder="Subject"
+              className="w-full mb-2 p-2 border"
+              defaultValue={subject}
+              disabled
+            />
             <Editor
               containerProps={{
                 style: {

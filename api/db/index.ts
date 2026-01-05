@@ -97,7 +97,13 @@ export class DB {
     };
   }
 
-  public async listPublicApologies({ limit = 10, offset = 0 }: { limit?: number; offset?: number; } = {}): Promise<{ items: { id: string; username: string; subject: string; excerpt: string }[]; total: number }>{
+  public async listPublicApologies({
+    limit = 10,
+    offset = 0,
+  }: { limit?: number; offset?: number } = {}): Promise<{
+    items: { id: string; username: string; subject: string; excerpt: string }[];
+    total: number;
+  }> {
     // Get total
     const all = await this.db
       .select()
@@ -107,7 +113,12 @@ export class DB {
     const total = all.length;
 
     const rows = await this.db
-      .select({ id: schema.apologies.twitch_id, username: schema.apologies.twitch_username, subject: schema.apologies.subject, apology: schema.apologies.apology_text })
+      .select({
+        id: schema.apologies.twitch_id,
+        username: schema.apologies.twitch_username,
+        subject: schema.apologies.subject,
+        apology: schema.apologies.apology_text,
+      })
       .from(schema.apologies)
       .limit(limit)
       .offset(offset)
@@ -117,12 +128,19 @@ export class DB {
       return s.replace(/<[^>]+>/g, "").slice(0, 240);
     };
 
-    const items = rows.map((r: { id: string; username: string; subject: string | null; apology: string | null }) => ({
-      id: r.id as string,
-      username: r.username as string,
-      subject: r.subject as string,
-      excerpt: stripHtml(r.apology as string),
-    }));
+    const items = rows.map(
+      (r: {
+        id: string;
+        username: string;
+        subject: string | null;
+        apology: string | null;
+      }) => ({
+        id: r.id as string,
+        username: r.username as string,
+        subject: r.subject as string,
+        excerpt: stripHtml(r.apology as string),
+      })
+    );
 
     return { items, total };
   }

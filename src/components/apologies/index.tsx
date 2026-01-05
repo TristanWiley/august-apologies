@@ -4,7 +4,9 @@ import { Link } from "react-router";
 
 export const ApologiesPage: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
-  const [items, setItems] = React.useState<Array<{ id: string; username: string; subject: string; excerpt: string }>>([]);
+  const [items, setItems] = React.useState<
+    Array<{ id: string; username: string; subject: string; excerpt: string }>
+  >([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const [page, setPage] = React.useState(1);
@@ -16,7 +18,9 @@ export const ApologiesPage: React.FC = () => {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/apologies?page=${page}&pageSize=${pageSize}`);
+        const res = await fetch(
+          `/api/apologies?page=${page}&pageSize=${pageSize}`
+        );
         if (!res.ok) throw new Error("Failed to load apologies");
         const data = await res.json();
         if (!mounted) return;
@@ -60,24 +64,52 @@ export const ApologiesPage: React.FC = () => {
               <div key={it.id} className="p-4 border rounded bg-slate-900/40">
                 <div className="flex justify-between items-center">
                   <div>
-                    <Link to={`/view/${it.id}`} className="text-lg font-semibold text-[#DCC7FF]">{it.subject}</Link>
-                    <div className="text-sm text-slate-400">by {it.username}</div>
+                    <Link
+                      to={`/view/${it.id}`}
+                      className="text-lg font-semibold text-[#DCC7FF]"
+                    >
+                      {it.subject}
+                    </Link>
+                    <div className="text-sm text-slate-400">
+                      by {it.username}
+                    </div>
                   </div>
                 </div>
 
-                <p className="mt-3 text-slate-300">{it.excerpt}{it.excerpt.length >= 240 ? '…' : ''}</p>
+                <p className="mt-3 text-slate-300">
+                  {it.excerpt}
+                  {it.excerpt.length >= 240 ? "…" : ""}
+                </p>
               </div>
             ))}
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 rounded-md bg-slate-800 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">Prev</button>
-                <div className="text-sm">Page {page} / {totalPages}</div>
-                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-1 rounded-md bg-slate-800 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">Next</button>
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-1 rounded-md bg-slate-800 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                <div className="text-sm">
+                  Page {page} / {totalPages}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-1 rounded-md bg-slate-800 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
 
               <div>
-                <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} className="bg-slate-800 text-sm text-slate-200 px-2 py-1 rounded-md">
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-slate-800 text-sm text-slate-200 px-2 py-1 rounded-md"
+                >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>

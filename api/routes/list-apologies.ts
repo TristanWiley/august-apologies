@@ -11,7 +11,10 @@ export const listApologiesRoute = async (request: IRequest, env: Env) => {
     const offset = Math.max(0, (Math.max(1, page) - 1) * pageSize);
 
     const connection = new DB(env);
-    const { items, total } = await connection.listPublicApologies({ limit: pageSize, offset });
+    const { items, total } = await connection.listPublicApologies({
+      limit: pageSize,
+      offset,
+    });
 
     return generateJSONResponse({ items, total, page, pageSize }, 200);
   } catch (err) {
