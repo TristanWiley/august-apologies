@@ -54,25 +54,35 @@ type SpotifyPlaylistResponse = {
 function decodeHtmlEntities(input?: string): string | undefined {
   if (!input) return input;
   // Numeric entities (decimal)
-  let out = input.replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(Number(dec)));
+  let out = input.replace(/&#(\d+);/g, (_m, dec) =>
+    String.fromCharCode(Number(dec))
+  );
   // Numeric entities (hex)
-  out = out.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex) => String.fromCharCode(Number.parseInt(hex, 16)));
+  out = out.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex) =>
+    String.fromCharCode(Number.parseInt(hex, 16))
+  );
   // Named entities
   const map: Record<string, string> = {
-    amp: '&',
-    lt: '<',
-    gt: '>',
+    amp: "&",
+    lt: "<",
+    gt: ">",
     quot: '"',
     apos: "'",
-    nbsp: ' ',
+    nbsp: " ",
   };
   out = out.replace(/&([a-zA-Z]+);/g, (_m, name) => map[name] ?? `&${name};`);
   return out;
 }
 
-type EnvWithSpotify = Env & { SPOTIFY_CLIENT_ID: string; SPOTIFY_CLIENT_SECRET: string };
+type EnvWithSpotify = Env & {
+  SPOTIFY_CLIENT_ID: string;
+  SPOTIFY_CLIENT_SECRET: string;
+};
 
-export const spotifyPlaylistRoute = async (_request: IRequest, env: EnvWithSpotify) => {
+export const spotifyPlaylistRoute = async (
+  _request: IRequest,
+  env: EnvWithSpotify
+) => {
   try {
     const now = Date.now() / 1000;
 
@@ -97,7 +107,10 @@ export const spotifyPlaylistRoute = async (_request: IRequest, env: EnvWithSpoti
 
       if (!tokenRes.ok) {
         console.error("spotify token failure", await tokenRes.text());
-        return generateJSONResponse({ message: "Failed to get Spotify token" }, 500);
+        return generateJSONResponse(
+          { message: "Failed to get Spotify token" },
+          500
+        );
       }
 
       const tokenJSON = (await tokenRes.json()) as TokenResponse;
@@ -116,20 +129,25 @@ export const spotifyPlaylistRoute = async (_request: IRequest, env: EnvWithSpoti
 
     if (!res.ok) {
       console.error("spotify playlist fetch failed", await res.text());
-      return generateJSONResponse({ message: "Failed to fetch playlist from Spotify" }, 500);
+      return generateJSONResponse(
+        { message: "Failed to fetch playlist from Spotify" },
+        500
+      );
     }
 
     const json = (await res.json()) as SpotifyPlaylistResponse;
 
     // Simplify tracks
-    const tracks = (json.tracks?.items || []).map((it: SpotifyTrackItem, idx: number) => ({
-      id: it.track?.uri ?? `${json.id}:${idx}`,
-      name: it.track?.name ?? "",
-      artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
-      duration_ms: it.track?.duration_ms ?? 0,
-      external_url: it.track?.external_urls?.spotify ?? null,
-      album: it.track?.album?.name ?? null,
-    }));
+    const tracks = (json.tracks?.items || []).map(
+      (it: SpotifyTrackItem, idx: number) => ({
+        id: it.track?.uri ?? `${json.id}:${idx}`,
+        name: it.track?.name ?? "",
+        artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
+        duration_ms: it.track?.duration_ms ?? 0,
+        external_url: it.track?.external_urls?.spotify ?? null,
+        album: it.track?.album?.name ?? null,
+      })
+    );
 
     cachedPlaylist = {
       id: json.id,

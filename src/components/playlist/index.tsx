@@ -67,18 +67,33 @@ export const PlaylistPage: React.FC = () => {
       <main className="w-full max-w-4xl mt-4">
         <div className="flex gap-4 items-center">
           {playlist?.images?.[0] ? (
-            <img src={playlist.images[0].url} className="w-28 h-28 rounded" alt="playlist" />
+            <img
+              src={playlist.images[0].url}
+              className="w-28 h-28 rounded"
+              alt="playlist"
+            />
           ) : (
             <div className="w-28 h-28 rounded bg-slate-700" />
           )}
 
           <div>
-            <h2 className="text-2xl font-bold">{playlist?.name ?? "Community Playlist"}</h2>
+            <h2 className="text-2xl font-bold">
+              {playlist?.name ?? "Community Playlist"}
+            </h2>
             {playlist?.description ? (
-              <p className="text-sm text-slate-300 mt-1">{playlist.description}</p>
+              <p className="text-sm text-slate-300 mt-1">
+                {playlist.description}
+              </p>
             ) : null}
             {playlist?.id ? (
-              <a href={`https://open.spotify.com/playlist/${playlist.id}`} target="_blank" rel="noreferrer" className="text-sm text-[#1DB954] mt-2 inline-block">Open in Spotify</a>
+              <a
+                href={`https://open.spotify.com/playlist/${playlist.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-[#1DB954] mt-2 inline-block"
+              >
+                Open in Spotify
+              </a>
             ) : null}
           </div>
         </div>
@@ -100,14 +115,31 @@ export const PlaylistPage: React.FC = () => {
             <ul className="flex flex-col gap-3">
               {playlist.tracks.map((t: Track, idx: number) => (
                 <li key={t.id || idx} className="flex items-center gap-4">
-                  <div className="w-6 text-right text-sm text-slate-300">{idx + 1}</div>
+                  <div className="w-6 text-right text-sm text-slate-300">
+                    {idx + 1}
+                  </div>
                   <div className="flex-1">
                     <div className="font-medium">{t.name}</div>
-                    <div className="text-sm text-slate-400">{t.artists} • {t.album}</div>
+                    <div className="text-sm text-slate-400">
+                      {t.artists} • {t.album}
+                    </div>
                   </div>
-                  <div className="text-sm text-slate-300 mr-4">{Math.floor(t.duration_ms / 1000 / 60)}:{String(Math.floor((t.duration_ms / 1000) % 60)).padStart(2, '0')}</div>
+                  <div className="text-sm text-slate-300 mr-4">
+                    {Math.floor(t.duration_ms / 1000 / 60)}:
+                    {String(Math.floor((t.duration_ms / 1000) % 60)).padStart(
+                      2,
+                      "0"
+                    )}
+                  </div>
                   {t.external_url ? (
-                    <a href={t.external_url} target="_blank" rel="noreferrer" className="text-sm text-[#1DB954]">Listen</a>
+                    <a
+                      href={t.external_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[#1DB954]"
+                    >
+                      Listen
+                    </a>
                   ) : null}
                 </li>
               ))}
