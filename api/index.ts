@@ -3,6 +3,7 @@ import { loginRoute } from "./routes/login";
 import { submitApologyRoute } from "./routes/submit-apology";
 import { getApologyRoute } from "./routes/get-apology";
 import { twitchStatusRoute } from "./routes/twitch-status";
+import { spotifyPlaylistRoute } from "./routes/spotify-playlist";
 
 const { preflight, corsify } = cors();
 
@@ -17,6 +18,7 @@ router.get("/session", () => {
 });
 
 router.get("/twitch/live", twitchStatusRoute);
+router.get("/spotify/playlist", spotifyPlaylistRoute);
 
 router.post("/login", loginRoute);
 

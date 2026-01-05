@@ -30,6 +30,9 @@ export const Nav: React.FC = () => {
           <Link to="/apology" className={linkClass("/apology")}>
             Apology
           </Link>
+          <Link to="/playlist" className={linkClass("/playlist")}>
+            Playlist
+          </Link>
         </div>
 
         <div>
