@@ -29,18 +29,15 @@ export class DB {
     const sessionId = crypto.randomUUID();
 
     const response = await this.db
-      .insert(schema.apologies)
+      .insert(schema.accounts)
       .values({
         twitch_id: id,
-        twitch_username: displayName,
+        display_name: displayName,
         session_id: sessionId,
       })
       .onConflictDoUpdate({
-        target: schema.apologies.twitch_id,
-        set: {
-          twitch_username: displayName,
-          session_id: sessionId,
-        },
+        target: schema.accounts.twitch_id,
+        set: { display_name: displayName, session_id: sessionId },
       })
       .returning();
 
@@ -48,12 +45,10 @@ export class DB {
       return null;
     }
 
-    const record = response[0];
-
     return {
       sessionId: sessionId,
-      subject: record.subject,
-      apology: record.apology_text,
+      subject: null,
+      apology: null,
     };
   }
 

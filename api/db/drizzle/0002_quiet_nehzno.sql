@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `apologies_twitch_id_unique` ON `apologies` (`twitch_id`);

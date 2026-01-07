@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1761804038158,
-      "tag": "0000_milky_tigra",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1761809693439,
-      "tag": "0001_slimy_iron_monger",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1761811969004,
-      "tag": "0002_quiet_nehzno",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1767686300212,
-      "tag": "0003_rich_alex_power",
+      "when": 1767766315110,
+      "tag": "0000_needy_leader",
       "breakpoints": true
     }
   ]
