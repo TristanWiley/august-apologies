@@ -8,6 +8,9 @@ import { spotifyPlaylistRoute } from "./routes/spotify-playlist";
 import { getAccountSessionRoute } from "./routes/get-account-session";
 import { spotifyAddTrackRoute } from "./routes/spotify-add-track";
 import { spotifyRemoveTrackRoute } from "./routes/spotify-remove-track";
+import { adminTwitchCallbackRoute } from "./routes/admin/twitch-callback";
+import { adminTwitchInfoRoute } from "./routes/admin/twitch-info";
+import { eventsubCallbackRoute } from "./routes/eventsub-callback";
 
 const { preflight, corsify } = cors();
 
@@ -25,6 +28,12 @@ router.get("/twitch/live", twitchStatusRoute);
 router.get("/spotify/playlist", spotifyPlaylistRoute);
 
 router.post("/login", loginRoute);
+
+router.post("/admin/twitch/callback", adminTwitchCallbackRoute);
+router.get("/admin/twitch/info", adminTwitchInfoRoute);
+
+// EventSub callback endpoint
+router.post("/api/eventsub/callback", eventsubCallbackRoute);
 
 router.get("/accounts/session", getAccountSessionRoute);
 

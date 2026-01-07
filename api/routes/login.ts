@@ -1,10 +1,11 @@
 import type { IRequest } from "itty-router";
-import { DB } from "../db";
-import { generateJSONResponse } from "../utils";
+import { DB, type AccountSelectType } from "../db";
+import { generateJSONResponse, getValidBroadcasterAccessToken } from "../utils";
 import type {
   TwitchHelixUsersResponse,
   TwitchOAuthTokenResponse,
 } from "../types/twitch";
+import { TwitchApi } from "ts-twitch-api";
 
 /**
  * Route to handle logging in a Twitch user
@@ -138,45 +139,54 @@ export const loginRoute = async (
     );
   }
 
-  // Try to detect whether the user is subscribed to the configured broadcaster (optional)
+  // Check if the user is subscribed to the broadcaster
   let isSubscriber = false;
-  try {
-    if (env.TWITCH_BROADCASTER_ID && env.TWITCH_BROADCASTER_TOKEN) {
-      const subCheck = await fetch(
-        `https://api.twitch.tv/helix/subscriptions?broadcaster_id=${env.TWITCH_BROADCASTER_ID}&user_id=${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${env.TWITCH_BROADCASTER_TOKEN}`,
-            "Client-Id": env.TWITCH_CLIENT_ID,
-          },
-        }
-      );
+  let subscriptionType: string | undefined = undefined;
+  let isGiftedSub = false;
 
-      if (subCheck.ok) {
-        const subJson = await subCheck.json();
-        isSubscriber = Array.isArray(subJson.data) && subJson.data.length > 0;
-      } else {
-        console.warn(
-          "Failed to check subscription status",
-          await subCheck.text()
-        );
+  try {
+    const accessToken = await getValidBroadcasterAccessToken(env);
+    if (accessToken) {
+      const twitchApi = new TwitchApi({
+        accessToken: accessToken,
+        clientId: env.TWITCH_CLIENT_ID,
+      });
+
+      const response = await twitchApi.subscriptions.checkUserSubscription({
+        broadcaster_id: env.TWITCH_BROADCASTER_ID,
+        user_id: id,
+      });
+
+      if (response.ok && response.data.data.length > 0) {
+        isSubscriber = true;
+        subscriptionType = response.data.data[0].tier;
+        isGiftedSub = response.data.data[0].is_gift;
       }
     }
   } catch (err) {
-    console.warn("subscription check error:", err);
+    console.warn("Error checking subscription status", err);
   }
+
+  let account: AccountSelectType | null = null;
 
   // Persist subscriber flag if obtained
   if (isSubscriber) {
     try {
-      await connection.setSubscriber(id, true);
+      account = await connection.setSubscriber(
+        id,
+        isSubscriber,
+        subscriptionType,
+        isGiftedSub
+      );
     } catch (err) {
       console.warn("Failed to set subscriber flag", err);
     }
   }
 
-  // Fetch account info
-  const account = await connection.getAccountByTwitchID(id);
+  // Fetch account info if not already fetched
+  if (!account) {
+    account = await connection.getAccountByTwitchID(id);
+  }
 
   // Return a 200 response
   return generateJSONResponse(
@@ -185,10 +195,8 @@ export const loginRoute = async (
       message: "Successfully logged in",
       data: {
         twitchID: id,
-        twitchUsername: display_name,
-        sessionId: data.sessionId,
-        subject: data.subject,
-        apology: data.apology,
+        twitchUsername: account?.display_name || display_name,
+        sessionId: account?.session_id || data.session_id,
         isSubscriber: account?.is_subscriber ?? false,
       },
     },

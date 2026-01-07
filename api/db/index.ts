@@ -2,6 +2,8 @@ import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./drizzle/schema";
 import { eq } from "drizzle-orm";
 
+export type AccountSelectType = typeof schema.accounts.$inferSelect;
+
 export class DB {
   private db: DrizzleD1Database<typeof schema>;
 
@@ -20,11 +22,7 @@ export class DB {
   }: {
     id: string;
     displayName: string;
-  }): Promise<{
-    sessionId: string;
-    subject: string | null;
-    apology: string | null;
-  } | null> {
+  }): Promise<AccountSelectType | null> {
     // Create session id
     const sessionId = crypto.randomUUID();
 
@@ -41,30 +39,34 @@ export class DB {
       })
       .returning();
 
-    if (!response) {
-      return null;
-    }
-
-    return {
-      sessionId: sessionId,
-      subject: null,
-      apology: null,
-    };
+    return response.length > 0 ? response[0] : null;
   }
 
   public async submitApology({
-    sessionId,
+    account,
     apology,
     subject,
   }: {
-    sessionId: string;
+    account: AccountSelectType;
     apology: string;
     subject: string;
   }): Promise<boolean> {
     const response = await this.db
-      .update(schema.apologies)
-      .set({ apology_text: apology, subject })
-      .where(eq(schema.apologies.session_id, sessionId));
+      .insert(schema.apologies)
+      .values({
+        apology_text: apology,
+        subject,
+        twitch_id: account.twitch_id,
+        twitch_username: account.display_name,
+      })
+      .onConflictDoUpdate({
+        target: schema.apologies.twitch_id,
+        set: {
+          apology_text: apology,
+          subject,
+          twitch_username: account.display_name,
+        },
+      });
 
     return response.meta.changes > 0;
   }
@@ -93,44 +95,45 @@ export class DB {
   }
 
   // Accounts helpers
-  public async getAccountBySession(sessionId: string): Promise<{
-    twitch_id: string;
-    display_name: string;
-    is_subscriber: boolean;
-  } | null> {
+  public async getAccountBySession(
+    sessionId: string
+  ): Promise<AccountSelectType | null> {
     const record = await this.db
-      .select({
-        twitch_id: schema.accounts.twitch_id,
-        display_name: schema.accounts.display_name,
-        is_subscriber: schema.accounts.is_subscriber,
-      })
+      .select()
       .from(schema.accounts)
       .where(eq(schema.accounts.session_id, sessionId))
       .limit(1)
       .then((r) => r[0]);
 
-    if (!record) return null;
-
-    return {
-      twitch_id: record.twitch_id as string,
-      display_name: record.display_name as string,
-      is_subscriber: Boolean(record.is_subscriber),
-    };
+    return record || null;
   }
 
   public async setSubscriber(
     twitchId: string,
-    flag: boolean
-  ): Promise<boolean> {
+    flag: boolean,
+    subscriptionType?: string,
+    isGiftedSub?: boolean
+  ): Promise<AccountSelectType | null> {
     const response = await this.db
       .update(schema.accounts)
-      .set({ is_subscriber: flag ? 1 : 0 })
-      .where(eq(schema.accounts.twitch_id, twitchId));
+      .set({
+        is_subscriber: flag ? 1 : 0,
+        subscription_type: subscriptionType,
+        is_gifted_sub: isGiftedSub,
+      })
+      .where(eq(schema.accounts.twitch_id, twitchId))
+      .returning();
 
-    return response.meta.changes > 0;
+    if (response.length === 0) {
+      throw new Error("Failed to update subscriber status");
+    }
+
+    return response[0];
   }
 
-  public async getAccountByTwitchID(twitchId: string) {
+  public async getAccountByTwitchID(
+    twitchId: string
+  ): Promise<AccountSelectType | null> {
     const record = await this.db
       .select()
       .from(schema.accounts)
@@ -138,12 +141,7 @@ export class DB {
       .limit(1)
       .then((r) => r[0]);
 
-    if (!record) return null;
-    return {
-      twitch_id: record.twitch_id as string,
-      display_name: record.display_name as string,
-      is_subscriber: Boolean(record.is_subscriber),
-    };
+    return record || null;
   }
 
   public async listPublicApologies({

@@ -27,7 +27,7 @@ export const getApologyRoute = async (
   const apology = await connection.getApologyByID(id);
 
   if (!apology) {
-    return generateJSONResponse({ message: "Failed to submit apology" }, 500);
+    return generateJSONResponse({ message: "Failed to get apology" }, 500);
   }
 
   return generateJSONResponse(

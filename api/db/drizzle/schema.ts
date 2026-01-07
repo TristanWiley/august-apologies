@@ -19,10 +19,8 @@ export const accounts = sqliteTable("accounts", {
   session_id: text().notNull(),
   is_subscriber: integer().default(0),
   is_owner: integer().default(0),
-  broadcaster_token: text(),
-  broadcaster_refresh_token: text(),
-  broadcaster_token_expires_at: text(),
-  spotify_owner_token: text(),
+  subscription_type: text(),
+  is_gifted_sub: integer({ mode: "boolean" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(timestampDefault),

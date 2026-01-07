@@ -33,11 +33,18 @@ export const submitApologyRoute = async (
     );
   }
 
+  // Get logged in user
+  const account = await connection.getAccountBySession(sessionId);
+
+  if (!account) {
+    return generateJSONResponse({ message: "Invalid session ID" }, 400);
+  }
+
   const sanitizedApology = sanitizeHtml(apology);
 
   // Submit apology
   const success = await connection.submitApology({
-    sessionId,
+    account,
     apology: sanitizedApology,
     subject,
   });

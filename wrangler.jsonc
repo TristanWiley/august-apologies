@@ -5,7 +5,8 @@
   "main": "./api/index.ts",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "directory": "./dist"
   },
   "d1_databases": [
     {
@@ -15,8 +16,16 @@
       "migrations_dir": "./api/db/drizzle"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "PERMISSIONS_KV",
+      "preview_id": "__PERMISSIONS_PREVIEW__",
+      "id": "__PERMISSIONS_PROD__"
+    }
+  ],
   "vars": {
     "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk",
-    "SPOTIFY_CLIENT_ID": "0b9ad9516134433580037eb764782952"
+    "SPOTIFY_CLIENT_ID": "0b9ad9516134433580037eb764782952",
+    "TWITCH_BROADCASTER_ID": "194331558"
   }
 }

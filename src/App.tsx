@@ -5,6 +5,8 @@ import { HomePage } from "./components/homepage";
 import { PlaylistPage } from "./components/playlist";
 import { ApologiesPage } from "./components/apologies";
 import { TwitchCallbackPage } from "./components/twitch-callback";
+import { AdminPage } from "./components/admin";
+import { AdminTwitchCallbackPage } from "./components/admin/twitch-callback";
 import { ApologyView } from "./components/apology-view";
 import { LoginPage } from "./components/login-page";
 
@@ -19,6 +21,12 @@ export const App = () => {
     { path: "/playlist", element: <PlaylistPage />, auth: false },
     { path: "/login", element: <LoginPage />, auth: false },
     { path: "/twitch-callback", element: <TwitchCallbackPage />, auth: false },
+    { path: "/admin", element: <AdminPage />, auth: false },
+    {
+      path: "/admin/twitch-callback",
+      element: <AdminTwitchCallbackPage />,
+      auth: false,
+    },
     { path: "/view/:id", element: <ApologyView />, auth: false },
   ];
 
