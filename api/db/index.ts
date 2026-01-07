@@ -97,6 +97,60 @@ export class DB {
     };
   }
 
+  // Accounts helpers
+  public async getAccountBySession(sessionId: string): Promise<{
+    twitch_id: string;
+    display_name: string;
+    is_subscriber: boolean;
+  } | null> {
+    const record = await this.db
+      .select({
+        twitch_id: schema.accounts.twitch_id,
+        display_name: schema.accounts.display_name,
+        is_subscriber: schema.accounts.is_subscriber,
+      })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.session_id, sessionId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    if (!record) return null;
+
+    return {
+      twitch_id: record.twitch_id as string,
+      display_name: record.display_name as string,
+      is_subscriber: Boolean(record.is_subscriber),
+    };
+  }
+
+  public async setSubscriber(
+    twitchId: string,
+    flag: boolean
+  ): Promise<boolean> {
+    const response = await this.db
+      .update(schema.accounts)
+      .set({ is_subscriber: flag ? 1 : 0 })
+      .where(eq(schema.accounts.twitch_id, twitchId));
+
+    return response.meta.changes > 0;
+  }
+
+  public async getAccountByTwitchID(twitchId: string) {
+    const record = await this.db
+      .select()
+      .from(schema.accounts)
+      .where(eq(schema.accounts.twitch_id, twitchId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    if (!record) return null;
+    return {
+      twitch_id: record.twitch_id as string,
+      display_name: record.display_name as string,
+      is_subscriber: Boolean(record.is_subscriber),
+    };
+  }
+
   public async listPublicApologies({
     limit = 10,
     offset = 0,

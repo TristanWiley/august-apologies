@@ -35,6 +35,19 @@ export const PlaylistPage: React.FC = () => {
   const [playlist, setPlaylist] = React.useState<Playlist | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  const [isSubscriber, setIsSubscriber] = React.useState(false);
+  const [addingUri, setAddingUri] = React.useState("");
+  const sessionId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("august-session-id")
+      : null;
+
+  // Confirmation modal state for removing tracks
+  const [confirmingTrack, setConfirmingTrack] = React.useState<Track | null>(
+    null
+  );
+  const [confirmLoading, setConfirmLoading] = React.useState(false);
+
   React.useEffect(() => {
     let mounted = true;
 
@@ -55,10 +68,55 @@ export const PlaylistPage: React.FC = () => {
       }
     })();
 
+    // fetch account data if sessionId exists
+    (async () => {
+      if (!sessionId) return;
+      try {
+        const res = await fetch(`/api/accounts/session?sessionId=${sessionId}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!mounted) return;
+        setIsSubscriber(Boolean(json.account?.is_subscriber));
+      } catch (err) {
+        console.warn("Failed to fetch account info", err);
+      }
+    })();
+
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [sessionId]);
+
+  const handleConfirmRemove = async () => {
+    if (!confirmingTrack) return;
+    setConfirmLoading(true);
+    try {
+      const res = await fetch(`/api/spotify/playlist/remove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, trackUri: confirmingTrack.id }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to remove track");
+      }
+
+      setPlaylist((p) =>
+        p
+          ? {
+              ...p,
+              tracks: p.tracks.filter((x) => x.id !== confirmingTrack.id),
+            }
+          : p
+      );
+      setConfirmingTrack(null);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
@@ -99,58 +157,167 @@ export const PlaylistPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          {loading ? (
-            <ul className="flex flex-col gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <li key={i} className="py-2">
-                  <SkeletonTrack idx={i} />
-                </li>
-              ))}
-            </ul>
-          ) : error ? (
-            <div className="flex items-center justify-center h-48">
-              <p className="text-xl text-red-500">{error}</p>
-            </div>
-          ) : playlist && playlist.tracks.length > 0 ? (
-            <ul className="flex flex-col gap-3">
-              {playlist.tracks.map((t: Track, idx: number) => (
-                <li key={t.id || idx} className="flex items-center gap-4">
-                  <div className="w-6 text-right text-sm text-slate-300">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium">{t.name}</div>
-                    <div className="text-sm text-slate-400">
-                      {t.artists} • {t.album}
+          {/* compute content to avoid nested ternaries */}
+          {(() => {
+            if (loading) {
+              return (
+                <ul className="flex flex-col gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <li key={i} className="py-2">
+                      <SkeletonTrack idx={i} />
+                    </li>
+                  ))}
+                </ul>
+              );
+            }
+
+            if (error) {
+              return (
+                <div className="flex items-center justify-center h-48">
+                  <p className="text-xl text-red-500">{error}</p>
+                </div>
+              );
+            }
+
+            if (playlist && playlist.tracks.length > 0) {
+              return (
+                <>
+                  <ul className="flex flex-col gap-3">
+                    {playlist.tracks.map((t: Track, idx: number) => (
+                      <li key={t.id || idx} className="flex items-center gap-4">
+                        <div className="w-6 text-right text-sm text-slate-300">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{t.name}</div>
+                          <div className="text-sm text-slate-400">
+                            {t.artists} • {t.album}
+                          </div>
+                        </div>
+                        <div className="text-sm text-slate-300 mr-4">
+                          {Math.floor(t.duration_ms / 1000 / 60)}:
+                          {String(
+                            Math.floor((t.duration_ms / 1000) % 60)
+                          ).padStart(2, "0")}
+                        </div>
+
+                        {t.external_url ? (
+                          <a
+                            href={t.external_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-[#1DB954]"
+                          >
+                            Listen
+                          </a>
+                        ) : null}
+
+                        {isSubscriber ? (
+                          <button
+                            onClick={() => setConfirmingTrack(t)}
+                            className="ml-4 text-sm text-red-400"
+                          >
+                            Remove
+                          </button>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {isSubscriber ? (
+                    <div className="mt-4 flex items-center gap-2">
+                      <input
+                        value={addingUri}
+                        onChange={(e) => setAddingUri(e.target.value)}
+                        placeholder="spotify:track:... or https://open.spotify.com/track/..."
+                        className="bg-slate-900/40 px-2 py-1 rounded flex-1"
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!addingUri) return;
+                          try {
+                            const res = await fetch(
+                              `/api/spotify/playlist/add`,
+                              {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  sessionId,
+                                  trackUri: addingUri,
+                                }),
+                              }
+                            );
+                            if (!res.ok) {
+                              const json = await res.json();
+                              throw new Error(
+                                json.message || "Failed to add track"
+                              );
+                            }
+                            // Refresh playlist
+                            const refreshed = await fetch(
+                              "/api/spotify/playlist"
+                            );
+                            if (refreshed.ok) {
+                              const data = await refreshed.json();
+                              setPlaylist(data);
+                              setAddingUri("");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            const msg =
+                              err instanceof Error ? err.message : String(err);
+                            alert(msg || "Failed to add track");
+                          }
+                        }}
+                        className="bg-[#1DB954] text-black px-3 py-1 rounded"
+                      >
+                        Add
+                      </button>
                     </div>
-                  </div>
-                  <div className="text-sm text-slate-300 mr-4">
-                    {Math.floor(t.duration_ms / 1000 / 60)}:
-                    {String(Math.floor((t.duration_ms / 1000) % 60)).padStart(
-                      2,
-                      "0"
-                    )}
-                  </div>
-                  {t.external_url ? (
-                    <a
-                      href={t.external_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-[#1DB954]"
-                    >
-                      Listen
-                    </a>
                   ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex items-center justify-center h-48">
-              <p className="text-xl">No tracks found.</p>
-            </div>
-          )}
+                </>
+              );
+            }
+
+            return (
+              <div className="flex items-center justify-center h-48">
+                <p className="text-xl">No tracks found.</p>
+              </div>
+            );
+          })()}
         </div>
       </main>
+
+      {/* Confirmation modal for removals */}
+      {confirmingTrack ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-slate-900 p-6 rounded shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold">Remove track?</h3>
+            <p className="text-sm text-slate-300 mt-2">
+              Remove "{confirmingTrack.name}" by {confirmingTrack.artists} from
+              the playlist? This cannot be undone here; you can re-add the track
+              if needed.
+            </p>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmingTrack(null)}
+                className="px-3 py-1 rounded bg-slate-800 text-sm"
+                disabled={confirmLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRemove}
+                className="px-3 py-1 rounded bg-red-500 text-white"
+                disabled={confirmLoading}
+              >
+                {confirmLoading ? "Removing…" : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

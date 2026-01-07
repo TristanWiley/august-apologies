@@ -138,6 +138,46 @@ export const loginRoute = async (
     );
   }
 
+  // Try to detect whether the user is subscribed to the configured broadcaster (optional)
+  let isSubscriber = false;
+  try {
+    if (env.TWITCH_BROADCASTER_ID && env.TWITCH_BROADCASTER_TOKEN) {
+      const subCheck = await fetch(
+        `https://api.twitch.tv/helix/subscriptions?broadcaster_id=${env.TWITCH_BROADCASTER_ID}&user_id=${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${env.TWITCH_BROADCASTER_TOKEN}`,
+            "Client-Id": env.TWITCH_CLIENT_ID,
+          },
+        }
+      );
+
+      if (subCheck.ok) {
+        const subJson = await subCheck.json();
+        isSubscriber = Array.isArray(subJson.data) && subJson.data.length > 0;
+      } else {
+        console.warn(
+          "Failed to check subscription status",
+          await subCheck.text()
+        );
+      }
+    }
+  } catch (err) {
+    console.warn("subscription check error:", err);
+  }
+
+  // Persist subscriber flag if obtained
+  if (isSubscriber) {
+    try {
+      await connection.setSubscriber(id, true);
+    } catch (err) {
+      console.warn("Failed to set subscriber flag", err);
+    }
+  }
+
+  // Fetch account info
+  const account = await connection.getAccountByTwitchID(id);
+
   // Return a 200 response
   return generateJSONResponse(
     {
@@ -149,6 +189,7 @@ export const loginRoute = async (
         sessionId: data.sessionId,
         subject: data.subject,
         apology: data.apology,
+        isSubscriber: account?.is_subscriber ?? false,
       },
     },
     200
