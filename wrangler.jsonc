@@ -19,8 +19,8 @@
   "kv_namespaces": [
     {
       "binding": "PERMISSIONS_KV",
-      "preview_id": "__PERMISSIONS_PREVIEW__",
-      "id": "__PERMISSIONS_PROD__"
+      "preview_id": "2aabd539607e47bcba2df6b1ef19287a",
+      "id": "2aabd539607e47bcba2df6b1ef19287a"
     }
   ],
   "vars": {
