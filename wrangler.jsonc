@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "august-apology",
+  "name": "august-apologies",
   "compatibility_date": "2025-10-29",
   "main": "./api/index.ts",
   "compatibility_flags": ["nodejs_compat"],
