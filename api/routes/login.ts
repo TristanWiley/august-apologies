@@ -1,6 +1,9 @@
 import type { IRequest } from "itty-router";
 import { DB, type AccountSelectType } from "../db";
-import { generateJSONResponse, getValidBroadcasterAccessToken } from "../utils";
+import {
+  generateJSONResponse,
+  getValidBroadcasterAccessToken,
+} from "../utils/utils";
 import type {
   TwitchHelixUsersResponse,
   TwitchOAuthTokenResponse,

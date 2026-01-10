@@ -9,6 +9,7 @@ import { AdminPage } from "./components/admin";
 import { AdminTwitchCallbackPage } from "./components/admin/twitch-callback";
 import { ApologyView } from "./components/apology-view";
 import { LoginPage } from "./components/login-page";
+import { AccountPage } from "./components/account-page";
 
 export const App = () => {
   const sessionId = localStorage.getItem("august-session-id");
@@ -16,6 +17,7 @@ export const App = () => {
   // Centralized route config — add new routes here as needed
   const routes = [
     { path: "/", element: <HomePage />, auth: false },
+    { path: "/account", element: <AccountPage />, auth: true },
     { path: "/apology", element: <ApologySubmission />, auth: true },
     { path: "/apologies", element: <ApologiesPage />, auth: false },
     { path: "/playlist", element: <PlaylistPage />, auth: false },

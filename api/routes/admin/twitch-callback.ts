@@ -1,5 +1,5 @@
 import type { IRequest } from "itty-router";
-import { generateJSONResponse } from "../../utils";
+import { generateJSONResponse } from "../../utils/utils";
 import type { TwitchOAuthTokenResponse } from "../../types/twitch";
 import { TwitchApi } from "ts-twitch-api";
 

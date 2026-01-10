@@ -1,6 +1,6 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
-import { generateJSONResponse } from "../utils";
+import { generateJSONResponse } from "../utils/utils";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 

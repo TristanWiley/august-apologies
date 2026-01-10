@@ -1,6 +1,6 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
-import { generateJSONResponse } from "../utils";
+import { generateJSONResponse } from "../utils/utils";
 import sanitizeHtml from "sanitize-html";
 
 export const submitApologyRoute = async (

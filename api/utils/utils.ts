@@ -1,6 +1,8 @@
-import type { KVTwitchAuthPermissions } from "./types/kv";
-import type { TwitchOAuthTokenResponse } from "./types/twitch";
+import type { Playlist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
+import type { KVTwitchAuthPermissions } from "../types/kv";
+import type { TwitchOAuthTokenResponse } from "../types/twitch";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const generateJSONResponse = (json: any, status: number): Response => {
   // If the status is an error, log the error
   if (status >= 400) {
@@ -82,4 +84,33 @@ export const getValidBroadcasterAccessToken = async (env: Env) => {
     console.error("Error getting valid broadcaster access token", err);
     return null;
   }
+};
+
+export const getPlaylistWithAllTracks = async (
+  spotifyClient: SpotifyApi,
+  playlistId: string
+): Promise<Playlist<Track>> => {
+  const playlist = await spotifyClient.playlists.getPlaylist(playlistId);
+
+  const trackItems = [...playlist.tracks.items];
+  let fetchedAllTracks = !playlist.tracks.next;
+  let offset = playlist.tracks.limit;
+  const limit = 50;
+
+  while (!fetchedAllTracks) {
+    const playlistTracksRes = await spotifyClient.playlists.getPlaylistItems(
+      playlistId,
+      undefined,
+      undefined,
+      limit,
+      offset
+    );
+    trackItems.push(...playlistTracksRes.items);
+    offset = offset + limit;
+    fetchedAllTracks = !playlistTracksRes.next;
+  }
+
+  playlist.tracks.items = trackItems;
+
+  return playlist;
 };

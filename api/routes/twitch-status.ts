@@ -1,5 +1,5 @@
 import type { IRequest } from "itty-router";
-import { generateJSONResponse } from "../utils";
+import { generateJSONResponse } from "../utils/utils";
 import type { TwitchHelixStreamsResponse } from "../types/twitch";
 
 export const twitchStatusRoute = async (_request: IRequest, env: Env) => {

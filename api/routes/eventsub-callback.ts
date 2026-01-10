@@ -1,5 +1,5 @@
 import type { IRequest } from "itty-router";
-import { generateJSONResponse } from "../utils";
+import { generateJSONResponse } from "../utils/utils";
 
 export const eventsubCallbackRoute = async (request: IRequest, env: Env) => {
   const messageType = request.headers.get("Twitch-Eventsub-Message-Type");

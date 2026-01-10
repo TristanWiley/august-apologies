@@ -1,5 +1,5 @@
 import type { IRequest } from "itty-router";
-import { generateJSONResponse } from "../../utils";
+import { generateJSONResponse } from "../../utils/utils";
 
 export const adminTwitchInfoRoute = async (_request: IRequest, env: Env) => {
   const kv = env.PERMISSIONS_KV;

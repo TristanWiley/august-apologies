@@ -46,12 +46,22 @@ export const Nav: React.FC = () => {
               </Link>
             ) : null
           ) : (
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-shadow shadow-sm"
-            >
-              Log out
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  window.location.href = "/account";
+                }}
+                className="bg-[#8956FB] text-white px-3 py-1 rounded-md hover:bg-[#7741d5] transition-shadow shadow-sm cursor-pointer"
+              >
+                Account
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-shadow shadow-sm cursor-pointer"
+              >
+                Log out
+              </button>
+            </div>
           )}
         </div>
       </div>
