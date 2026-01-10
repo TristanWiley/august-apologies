@@ -54,15 +54,7 @@ function decodeHtmlEntities(input?: string): string | undefined {
   return out;
 }
 
-type EnvWithSpotify = Env & {
-  SPOTIFY_CLIENT_ID: string;
-  SPOTIFY_CLIENT_SECRET: string;
-};
-
-export const spotifyPlaylistRoute = async (
-  _request: IRequest,
-  env: EnvWithSpotify
-) => {
+export const spotifyPlaylistRoute = async (_request: IRequest, env: Env) => {
   try {
     const now = Date.now() / 1000;
 
