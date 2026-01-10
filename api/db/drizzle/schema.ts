@@ -25,3 +25,16 @@ export const accounts = sqliteTable("accounts", {
     .notNull()
     .default(timestampDefault),
 });
+
+export const songs = sqliteTable("songs", {
+  id: integer().primaryKey(),
+  spotify_id: text().notNull().unique(),
+  title: text().notNull(),
+  artist: text().notNull(),
+  album: text().notNull(),
+  duration_ms: integer().notNull(),
+  added_by_twitch_id: text().notNull(),
+  added_at: integer("added_at", { mode: "timestamp" })
+    .notNull()
+    .default(timestampDefault),
+});
