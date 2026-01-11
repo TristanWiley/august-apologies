@@ -11,6 +11,7 @@ import { spotifyRemoveTrackRoute } from "./routes/spotify-remove-track";
 import { adminTwitchCallbackRoute } from "./routes/admin/twitch-callback";
 import { adminTwitchInfoRoute } from "./routes/admin/twitch-info";
 import { eventsubCallbackRoute } from "./routes/eventsub-callback";
+import { spotifyOwnershipRoute } from "./routes/spotify-ownership";
 
 const { preflight, corsify } = cors();
 
@@ -26,6 +27,7 @@ router.get("/session", () => {
 
 router.get("/twitch/live", twitchStatusRoute);
 router.get("/spotify/playlist", spotifyPlaylistRoute);
+router.get("/spotify/ownership", spotifyOwnershipRoute);
 
 router.post("/login", loginRoute);
 

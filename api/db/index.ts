@@ -1,6 +1,7 @@
 import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./drizzle/schema";
 import { eq } from "drizzle-orm";
+import type { SpotifyOwnership } from "../types/db";
 
 export type AccountSelectType = typeof schema.accounts.$inferSelect;
 
@@ -190,5 +191,31 @@ export class DB {
     );
 
     return { items, total };
+  }
+
+  public async getAllPlaylistOwnerships(): Promise<SpotifyOwnership> {
+    const rows = await this.db
+      .select({
+        spotifyId: schema.playlistEntries.song_id,
+        twitchId: schema.playlistEntries.twitch_id,
+        displayName: schema.accounts.display_name,
+      })
+      .from(schema.playlistEntries)
+      .innerJoin(
+        schema.accounts,
+        eq(schema.playlistEntries.twitch_id, schema.accounts.twitch_id)
+      );
+
+    const response: SpotifyOwnership = {};
+    for (const row of rows) {
+      response[row.spotifyId] = {
+        addedBy: {
+          twitchId: row.twitchId,
+          displayName: row.displayName,
+        },
+      };
+    }
+
+    return response;
   }
 }

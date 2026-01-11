@@ -1,5 +1,6 @@
 import type { AccessToken } from "@spotify/web-api-ts-sdk";
 import type { SimplifiedPlaylistToReturn } from "../routes/spotify-playlist";
+import type { SpotifyOwnership } from "../types/db";
 
 const PLAYLIST_TTL_SECONDS = 60; // 1 minute
 
@@ -68,3 +69,36 @@ export const getStoredSpotifyPlaylist = async (
 
   return null;
 };
+
+export const storeSpotifyOwnership = async (
+  ownershipData: SpotifyOwnership
+): Promise<void> => {
+  const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
+  const cache = caches.default;
+
+  const response = new Response(JSON.stringify(ownershipData), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": `public, max-age=${PLAYLIST_TTL_SECONDS}`,
+    },
+  });
+
+  // Store the ownership data in the cache
+  await cache.put(cacheKey, response.clone());
+};
+
+export const getStoredSpotifyOwnership =
+  async (): Promise<SpotifyOwnership | null> => {
+    const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
+    const cache = caches.default;
+
+    // Try to retrieve the ownership data from the cache
+    const cachedResponse = await cache.match(cacheKey);
+
+    if (cachedResponse) {
+      const ownershipJSON = await cachedResponse.json();
+      return ownershipJSON as SpotifyOwnership[];
+    }
+
+    return null;
+  };

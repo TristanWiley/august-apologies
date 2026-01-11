@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  integer,
+  text,
+  uniqueIndex,
+  index,
+} from "drizzle-orm/sqlite-core";
 
 const timestampDefault = sql`(unixepoch() * 1000)`;
 
@@ -26,6 +32,7 @@ export const accounts = sqliteTable("accounts", {
     .default(timestampDefault),
 });
 
+// Not used for now
 export const songs = sqliteTable("songs", {
   id: integer().primaryKey(),
   spotify_id: text().notNull().unique(),
@@ -38,3 +45,17 @@ export const songs = sqliteTable("songs", {
     .notNull()
     .default(timestampDefault),
 });
+
+export const playlistEntries = sqliteTable(
+  "playlist_entries",
+  {
+    id: integer().primaryKey(),
+    song_id: text().notNull(),
+    twitch_id: text().notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_playlist_song_unique").on(table.song_id, table.twitch_id),
+    index("idx_playlist_song_idx").on(table.song_id),
+    index("idx_playlist_user_idx").on(table.twitch_id),
+  ]
+);

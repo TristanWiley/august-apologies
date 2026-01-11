@@ -22,6 +22,27 @@
       "when": 1768036997062,
       "tag": "0002_odd_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1768040101503,
+      "tag": "0003_crazy_eternity",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1768041795162,
+      "tag": "0004_narrow_ares",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1768094101992,
+      "tag": "0005_romantic_boomerang",
+      "breakpoints": true
     }
   ]
 }

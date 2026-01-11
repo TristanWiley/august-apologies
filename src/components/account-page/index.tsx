@@ -4,12 +4,6 @@ export const AccountPage: React.FC = () => {
   const isSubscriber = true; // Placeholder for actual subscriber status
   const subscriberTier = 1; // Placeholder for actual subscriber tier
 
-  const addedSongs = [
-    { title: "Song Title 1", artist: "Artist 1" },
-    { title: "Song Title 2", artist: "Artist 2" },
-    { title: "Song Title 3", artist: "Artist 3" },
-  ];
-
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
       <Nav />
@@ -38,26 +32,6 @@ export const AccountPage: React.FC = () => {
             </div>
           )}
         </section>
-
-        {addedSongs.length > 0 && (
-          <section className="bg-slate-900/80 backdrop-blur-md p-6 rounded-lg shadow-md border border-slate-700/30">
-            <h2 className="text-xl font-semibold mb-4">Blalist Added Songs</h2>
-            <p className="mb-2">
-              You have added the following songs to the Blalist:
-            </p>
-            <ul className="list-disc list-inside space-y-1">
-              {addedSongs.length === 0 ? (
-                <li>No songs added yet.</li>
-              ) : (
-                addedSongs.map((song, index) => (
-                  <li key={index}>
-                    "{song.title}" by {song.artist}
-                  </li>
-                ))
-              )}
-            </ul>
-          </section>
-        )}
       </main>
     </div>
   );

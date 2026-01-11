@@ -30,13 +30,30 @@ const SkeletonTrack: React.FC<{ idx: number }> = ({ idx }) => (
   </div>
 );
 
+export interface SpotifyOwnership {
+  [spotifyId: string]: {
+    addedBy: {
+      twitchId: string;
+      displayName: string;
+    };
+  };
+}
+
+export interface SpotifyOwnershipResponse {
+  ownership: SpotifyOwnership;
+  cached: boolean;
+}
+
 export const PlaylistPage: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [playlist, setPlaylist] = React.useState<Playlist | null>(null);
+  const [ownership, setOwnership] = React.useState<SpotifyOwnership | null>(
+    null
+  );
   const [error, setError] = React.useState<string | null>(null);
 
-  const [isSubscriber, setIsSubscriber] = React.useState(false);
-  const [addingUri, setAddingUri] = React.useState("");
+  const [, setIsSubscriber] = React.useState(false);
+  // const [addingUri, setAddingUri] = React.useState("");
   const sessionId =
     typeof window !== "undefined"
       ? localStorage.getItem("august-session-id")
@@ -63,6 +80,23 @@ export const PlaylistPage: React.FC = () => {
         if (!mounted) return;
         const message = err instanceof Error ? err.message : String(err);
         setError(message || "Error");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    (async () => {
+      try {
+        const res = await fetch("/api/spotify/ownership");
+        if (!res.ok) throw new Error("Failed to fetch ownership data");
+        const data = (await res.json()) as SpotifyOwnershipResponse;
+        if (!mounted) return;
+        setOwnership(data.ownership);
+      } catch (err: unknown) {
+        console.error(err);
+        if (!mounted) return;
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("Ownership fetch error:", message);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -183,48 +217,72 @@ export const PlaylistPage: React.FC = () => {
               return (
                 <>
                   <ul className="flex flex-col gap-3">
-                    {playlist.tracks.map((t: Track, idx: number) => (
-                      <li key={t.id || idx} className="flex items-center gap-4">
-                        <div className="w-6 text-right text-sm text-slate-300">
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">{t.name}</div>
-                          <div className="text-sm text-slate-400">
-                            {t.artists} • {t.album}
+                    {playlist.tracks.map((t: Track, idx: number) => {
+                      const ownerName = ownership?.[t.id]?.addedBy.displayName;
+                      if (ownership) {
+                        console.log(
+                          t.id,
+                          ownership,
+                          ownership["spotify:track:4b7qa1hR0fFmoFTA77cgEm"]
+                        );
+                      }
+                      return (
+                        <li
+                          key={t.id || idx}
+                          className="flex items-center gap-4"
+                        >
+                          <div className="w-6 text-right text-sm text-slate-300">
+                            {idx + 1}
                           </div>
-                        </div>
-                        <div className="text-sm text-slate-300 mr-4">
-                          {Math.floor(t.duration_ms / 1000 / 60)}:
-                          {String(
-                            Math.floor((t.duration_ms / 1000) % 60)
-                          ).padStart(2, "0")}
-                        </div>
+                          <div className="flex-1">
+                            <div className="font-medium">
+                              {t.name}
+                              {ownerName ? (
+                                // Highlight the owner name
+                                <span className="text-amber-400">
+                                  {" "}
+                                  added by {ownerName}
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </div>
+                            <div className="text-sm text-slate-400">
+                              {t.artists} • {t.album}
+                            </div>
+                          </div>
+                          <div className="text-sm text-slate-300 mr-4">
+                            {Math.floor(t.duration_ms / 1000 / 60)}:
+                            {String(
+                              Math.floor((t.duration_ms / 1000) % 60)
+                            ).padStart(2, "0")}
+                          </div>
 
-                        {t.external_url ? (
-                          <a
-                            href={t.external_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm text-[#1DB954]"
-                          >
-                            Listen
-                          </a>
-                        ) : null}
+                          {t.external_url ? (
+                            <a
+                              href={t.external_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-[#1DB954]"
+                            >
+                              Listen
+                            </a>
+                          ) : null}
 
-                        {isSubscriber ? (
+                          {/* {isSubscriber ? (
                           <button
                             onClick={() => setConfirmingTrack(t)}
                             className="ml-4 text-sm text-red-400"
                           >
                             Remove
                           </button>
-                        ) : null}
-                      </li>
-                    ))}
+                        ) : null} */}
+                        </li>
+                      );
+                    })}
                   </ul>
 
-                  {isSubscriber ? (
+                  {/* {isSubscriber ? (
                     <div className="mt-4 flex items-center gap-2">
                       <input
                         value={addingUri}
@@ -274,7 +332,7 @@ export const PlaylistPage: React.FC = () => {
                         Add
                       </button>
                     </div>
-                  ) : null}
+                  ) : null} */}
                 </>
               );
             }
