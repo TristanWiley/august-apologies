@@ -14,7 +14,6 @@ export const TwitchPermissions: React.FC = () => {
     "moderation:read",
     "channel:manage:redemptions",
     "moderator:manage:automod",
-    "user:read:subscriptions",
   ].join(" ");
 
   const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${twitchClientID}&redirect_uri=${encodeURIComponent(
