@@ -2,7 +2,7 @@ import type { AccessToken } from "@spotify/web-api-ts-sdk";
 import type { SimplifiedPlaylistToReturn } from "../routes/spotify-playlist";
 import type { SpotifyOwnership } from "../types/db";
 
-const PLAYLIST_TTL_SECONDS = 60; // 1 minute
+const PLAYLIST_TTL_SECONDS = 86400; // 24 hours (we check staleness manually)
 
 export const storeSpotifyAccessToken = async (
   token: AccessToken
@@ -42,7 +42,13 @@ export const storeSpotifyPlaylist = async (
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlist.id}`;
   const cache = caches.default;
 
-  const response = new Response(JSON.stringify(playlist), {
+  // Store with timestamp for manual staleness checking
+  const cachedData = {
+    playlist,
+    cachedAt: Date.now(),
+  };
+
+  const response = new Response(JSON.stringify(cachedData), {
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": `public, max-age=${PLAYLIST_TTL_SECONDS}`,
@@ -55,7 +61,7 @@ export const storeSpotifyPlaylist = async (
 
 export const getStoredSpotifyPlaylist = async (
   playlistId: string
-): Promise<SimplifiedPlaylistToReturn | null> => {
+): Promise<{ playlist: SimplifiedPlaylistToReturn; age: number } | null> => {
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlistId}`;
   const cache = caches.default;
 
@@ -63,8 +69,15 @@ export const getStoredSpotifyPlaylist = async (
   const cachedResponse = await cache.match(cacheKey);
 
   if (cachedResponse) {
-    const playlistJSON = await cachedResponse.json();
-    return playlistJSON as SimplifiedPlaylistToReturn;
+    const cachedData = (await cachedResponse.json()) as {
+      playlist: SimplifiedPlaylistToReturn;
+      cachedAt: number;
+    };
+
+    // Calculate cache age from stored timestamp
+    const age = Math.floor((Date.now() - cachedData.cachedAt) / 1000);
+
+    return { playlist: cachedData.playlist, age };
   }
 
   return null;

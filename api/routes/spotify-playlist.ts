@@ -28,6 +28,7 @@ export interface SimplifiedPlaylistToReturn {
 }
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+const CACHE_REFRESH_THRESHOLD = 60;
 
 // Decode common HTML entities and numeric entities so descriptions like
 // "Half these songs aren&#x27;t..." render correctly as plain text.
@@ -54,18 +55,12 @@ function decodeHtmlEntities(input?: string): string | undefined {
   return out;
 }
 
-export const spotifyPlaylistRoute = async (_request: IRequest, env: Env) => {
+// Background function to fetch and cache playlist
+async function fetchAndCachePlaylist(
+  env: Env
+): Promise<SimplifiedPlaylistToReturn | null> {
   try {
     const now = Date.now() / 1000;
-
-    const cachedPlaylist = await getStoredSpotifyPlaylist(PLAYLIST_ID);
-    if (cachedPlaylist) {
-      console.log("Using cached Spotify playlist");
-      return generateJSONResponse({ ...cachedPlaylist, cached: true }, 200);
-    }
-
-    let spotifyToken: string | null = null;
-    let spotifyTokenExpiresAt = 0;
     let spotifyClient: SpotifyApi | null = null;
     let isUsingCachedToken = false;
 
@@ -73,17 +68,22 @@ export const spotifyPlaylistRoute = async (_request: IRequest, env: Env) => {
     const cachedTokenData = await getStoredSpotifyAccessToken();
     if (cachedTokenData) {
       console.log("Using cached Spotify access token");
-      spotifyToken = cachedTokenData.access_token;
-      spotifyTokenExpiresAt = cachedTokenData.expires || 0;
+      const spotifyTokenExpiresAt = cachedTokenData.expires || 0;
       spotifyClient = SpotifyApi.withAccessToken(
         env.SPOTIFY_CLIENT_ID,
         cachedTokenData
       );
       isUsingCachedToken = true;
-    }
 
-    // Ensure we have a valid app token
-    if (!spotifyToken || now >= spotifyTokenExpiresAt) {
+      // Ensure we have a valid app token
+      if (now >= spotifyTokenExpiresAt) {
+        spotifyClient = SpotifyApi.withClientCredentials(
+          env.SPOTIFY_CLIENT_ID,
+          env.SPOTIFY_CLIENT_SECRET
+        );
+      }
+    } else {
+      // Get new token
       spotifyClient = SpotifyApi.withClientCredentials(
         env.SPOTIFY_CLIENT_ID,
         env.SPOTIFY_CLIENT_SECRET
@@ -92,10 +92,7 @@ export const spotifyPlaylistRoute = async (_request: IRequest, env: Env) => {
 
     if (!spotifyClient) {
       console.error("Failed to initialize Spotify client");
-      return generateJSONResponse(
-        { message: "Failed to initialize Spotify client" },
-        500
-      );
+      return null;
     }
 
     const playlist = await getPlaylistWithAllTracks(spotifyClient, PLAYLIST_ID);
@@ -129,7 +126,43 @@ export const spotifyPlaylistRoute = async (_request: IRequest, env: Env) => {
       await storeSpotifyAccessToken(newAccessToken);
     }
 
-    return generateJSONResponse({ ...simplifiedPlaylist, cached: false }, 200);
+    return simplifiedPlaylist;
+  } catch (err) {
+    console.error("fetchAndCachePlaylist error:", err);
+    return null;
+  }
+}
+
+export const spotifyPlaylistRoute = async (
+  request: IRequest,
+  env: Env,
+  ctx: ExecutionContext
+) => {
+  try {
+    const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);
+
+    // If we have cached data, return it immediately
+    if (cachedData) {
+      console.log(`Using cached Spotify playlist (age: ${cachedData.age}s)`);
+
+      // If cache is getting stale, trigger background refresh
+      if (cachedData.age > CACHE_REFRESH_THRESHOLD) {
+        console.log("Cache is stale, refreshing in background");
+        ctx.waitUntil(fetchAndCachePlaylist(env));
+      }
+
+      return generateJSONResponse(cachedData.playlist, 200);
+    }
+
+    // No cache - fetch synchronously (first time only)
+    console.log("No cache found, fetching from Spotify");
+    const freshPlaylist = await fetchAndCachePlaylist(env);
+
+    if (!freshPlaylist) {
+      return generateJSONResponse({ message: "Failed to fetch playlist" }, 500);
+    }
+
+    return generateJSONResponse(freshPlaylist, 200);
   } catch (err) {
     console.error("spotifyPlaylistRoute error:", err);
     return generateJSONResponse({ message: "Internal server error" }, 500);
