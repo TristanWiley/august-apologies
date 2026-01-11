@@ -218,4 +218,17 @@ export class DB {
 
     return response;
   }
+
+  public async addPlaylistEntry(
+    spotifyId: string,
+    twitchId: string
+  ): Promise<void> {
+    await this.db
+      .insert(schema.playlistEntries)
+      .values({
+        song_id: spotifyId,
+        twitch_id: twitchId,
+      })
+      .onConflictDoNothing();
+  }
 }

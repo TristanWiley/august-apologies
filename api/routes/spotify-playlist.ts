@@ -1,16 +1,16 @@
 import type { IRequest } from "itty-router";
-import { generateJSONResponse, getPlaylistWithAllTracks } from "../utils/utils";
+import {
+  generateJSONResponse,
+  getPlaylistWithAllTracks,
+  getSpotifyCredentials,
+} from "../utils/utils";
 import {
   SpotifyApi,
   type PlaylistedTrack,
   type Track,
+  type AccessToken,
 } from "@spotify/web-api-ts-sdk";
-import {
-  getStoredSpotifyAccessToken,
-  getStoredSpotifyPlaylist,
-  storeSpotifyAccessToken,
-  storeSpotifyPlaylist,
-} from "../utils/cache";
+import { getStoredSpotifyPlaylist, storeSpotifyPlaylist } from "../utils/cache";
 
 export interface SimplifiedPlaylistToReturn {
   id: string;
@@ -60,40 +60,18 @@ async function fetchAndCachePlaylist(
   env: Env
 ): Promise<SimplifiedPlaylistToReturn | null> {
   try {
-    const now = Date.now() / 1000;
-    let spotifyClient: SpotifyApi | null = null;
-    let isUsingCachedToken = false;
-
-    // Check if the access token is cached and valid
-    const cachedTokenData = await getStoredSpotifyAccessToken();
-    if (cachedTokenData) {
-      console.log("Using cached Spotify access token");
-      const spotifyTokenExpiresAt = cachedTokenData.expires || 0;
-      spotifyClient = SpotifyApi.withAccessToken(
-        env.SPOTIFY_CLIENT_ID,
-        cachedTokenData
-      );
-      isUsingCachedToken = true;
-
-      // Ensure we have a valid app token
-      if (now >= spotifyTokenExpiresAt) {
-        spotifyClient = SpotifyApi.withClientCredentials(
-          env.SPOTIFY_CLIENT_ID,
-          env.SPOTIFY_CLIENT_SECRET
-        );
-      }
-    } else {
-      // Get new token
-      spotifyClient = SpotifyApi.withClientCredentials(
-        env.SPOTIFY_CLIENT_ID,
-        env.SPOTIFY_CLIENT_SECRET
-      );
-    }
-
-    if (!spotifyClient) {
-      console.error("Failed to initialize Spotify client");
+    // Get credentials from KV
+    const credentials = await getSpotifyCredentials(env);
+    if (!credentials || !credentials.access_token) {
+      console.error("Failed to get Spotify credentials from KV");
       return null;
     }
+
+    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+      access_token: credentials.access_token,
+      token_type: "Bearer",
+      expires_in: credentials.access_token_expires_in || 3600,
+    } as AccessToken);
 
     const playlist = await getPlaylistWithAllTracks(spotifyClient, PLAYLIST_ID);
 
@@ -119,12 +97,6 @@ async function fetchAndCachePlaylist(
 
     // Cache the simplified playlist
     await storeSpotifyPlaylist(simplifiedPlaylist);
-
-    // If we obtained a new access token, cache it
-    const newAccessToken = await spotifyClient.getAccessToken();
-    if (newAccessToken && !isUsingCachedToken) {
-      await storeSpotifyAccessToken(newAccessToken);
-    }
 
     return simplifiedPlaylist;
   } catch (err) {

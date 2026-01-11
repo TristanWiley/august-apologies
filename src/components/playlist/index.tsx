@@ -53,7 +53,11 @@ export const PlaylistPage: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   const [isSubscriber, setIsSubscriber] = React.useState(false);
-  const [addingUri, setAddingUri] = React.useState("");
+  const [addTrackUri, setAddTrackUri] = React.useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
+  const [isAddingTrack, setIsAddingTrack] = React.useState(false);
+  const [addError, setAddError] = React.useState<string | null>(null);
+
   const sessionId =
     typeof window !== "undefined"
       ? localStorage.getItem("august-session-id")
@@ -152,6 +156,60 @@ export const PlaylistPage: React.FC = () => {
     }
   };
 
+  const handleAddTrack = async () => {
+    if (!addTrackUri.trim()) {
+      setAddError("Please enter a track URI or Spotify link");
+      return;
+    }
+
+    setIsAddingTrack(true);
+    setAddError(null);
+
+    try {
+      // Handle both spotify:track:xxx and https://open.spotify.com/track/xxx formats
+      let trackUri = addTrackUri.trim();
+
+      if (trackUri.includes("open.spotify.com")) {
+        // Extract track ID from URL
+        const match = trackUri.match(/track\/([a-zA-Z0-9]+)/);
+        if (!match) {
+          throw new Error("Invalid Spotify URL");
+        }
+        trackUri = `spotify:track:${match[1]}`;
+      } else if (!trackUri.startsWith("spotify:track:")) {
+        throw new Error(
+          "Invalid track URI. Use spotify:track:xxx format or a Spotify link"
+        );
+      }
+
+      const res = await fetch(`/api/spotify/playlist/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, trackUri }),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to add track");
+      }
+
+      // Refresh playlist
+      const refreshed = await fetch("/api/spotify/playlist");
+      if (refreshed.ok) {
+        const data = await refreshed.json();
+        setPlaylist(data);
+        setAddTrackUri("");
+        setIsAddModalOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setAddError(msg || "Failed to add track");
+    } finally {
+      setIsAddingTrack(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
       <Nav />
@@ -173,16 +231,30 @@ export const PlaylistPage: React.FC = () => {
                 A playlist made by August's community, for the stream!
               </p>
             ) : null}
-            {playlist?.id ? (
-              <a
-                href={`https://open.spotify.com/playlist/${playlist.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm text-[#1DB954] mt-2 inline-block"
-              >
-                Open in Spotify
-              </a>
-            ) : null}
+            <div className="flex items-center gap-3 mt-2">
+              {playlist?.id ? (
+                <a
+                  href={`https://open.spotify.com/playlist/${playlist.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-[#1DB954]"
+                >
+                  Open in Spotify
+                </a>
+              ) : null}
+              {isSubscriber ? (
+                <button
+                  onClick={() => {
+                    setIsAddModalOpen(true);
+                    setAddError(null);
+                    setAddTrackUri("");
+                  }}
+                  className="cursor-pointer bg-[#1DB954] hover:bg-[#1ed760] text-black px-3 py-1 rounded text-sm font-semibold transition"
+                >
+                  + Add Song
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -268,7 +340,7 @@ export const PlaylistPage: React.FC = () => {
                           {/* {isSubscriber ? (
                           <button
                             onClick={() => setConfirmingTrack(t)}
-                            className="ml-4 text-sm text-red-400"
+                            className="cursor-pointer ml-4 text-sm text-red-400"
                           >
                             Remove
                           </button>
@@ -277,58 +349,6 @@ export const PlaylistPage: React.FC = () => {
                       );
                     })}
                   </ul>
-
-                  {isSubscriber ? (
-                    <div className="mt-4 flex items-center gap-2">
-                      <input
-                        value={addingUri}
-                        onChange={(e) => setAddingUri(e.target.value)}
-                        placeholder="spotify:track:... or https://open.spotify.com/track/..."
-                        className="bg-slate-900/40 px-2 py-1 rounded flex-1"
-                      />
-                      <button
-                        onClick={async () => {
-                          if (!addingUri) return;
-                          try {
-                            const res = await fetch(
-                              `/api/spotify/playlist/add`,
-                              {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  sessionId,
-                                  trackUri: addingUri,
-                                }),
-                              }
-                            );
-                            if (!res.ok) {
-                              const json = await res.json();
-                              throw new Error(
-                                json.message || "Failed to add track"
-                              );
-                            }
-                            // Refresh playlist
-                            const refreshed = await fetch(
-                              "/api/spotify/playlist"
-                            );
-                            if (refreshed.ok) {
-                              const data = await refreshed.json();
-                              setPlaylist(data);
-                              setAddingUri("");
-                            }
-                          } catch (err) {
-                            console.error(err);
-                            const msg =
-                              err instanceof Error ? err.message : String(err);
-                            alert(msg || "Failed to add track");
-                          }
-                        }}
-                        className="bg-[#1DB954] text-black px-3 py-1 rounded"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  ) : null}
                 </>
               );
             }
@@ -341,6 +361,56 @@ export const PlaylistPage: React.FC = () => {
           })()}
         </div>
       </main>
+
+      {/* Add Track Modal */}
+      {isAddModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-slate-900 p-6 rounded shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold">Add Song to Playlist</h3>
+            <p className="text-sm text-slate-400 mt-2">
+              Paste a Spotify track link or URI
+            </p>
+
+            <input
+              type="text"
+              value={addTrackUri}
+              onChange={(e) => {
+                setAddTrackUri(e.target.value);
+                setAddError(null);
+              }}
+              placeholder="spotify:track:xxx or https://open.spotify.com/track/..."
+              className="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded mt-4 text-white placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isAddingTrack) {
+                  handleAddTrack();
+                }
+              }}
+              disabled={isAddingTrack}
+            />
+
+            {addError ? (
+              <p className="text-sm text-red-400 mt-2">{addError}</p>
+            ) : null}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-3 py-1.5 rounded bg-slate-800 text-sm hover:bg-slate-700 transition disabled:cursor-not-allowed"
+                disabled={isAddingTrack}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddTrack}
+                className="cursor-pointer px-4 py-1.5 rounded bg-[#1DB954] text-black text-sm font-semibold hover:bg-[#1ed760] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isAddingTrack || !addTrackUri.trim()}
+              >
+                {isAddingTrack ? "Adding…" : "Add"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Confirmation modal for removals */}
       {confirmingTrack ? (
@@ -356,14 +426,14 @@ export const PlaylistPage: React.FC = () => {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setConfirmingTrack(null)}
-                className="px-3 py-1 rounded bg-slate-800 text-sm"
+                className="px-3 py-1 rounded bg-slate-800 text-sm disabled:cursor-not-allowed"
                 disabled={confirmLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmRemove}
-                className="px-3 py-1 rounded bg-red-500 text-white"
+                className="cursor-pointer px-3 py-1 rounded bg-red-500 text-white disabled:cursor-not-allowed"
                 disabled={confirmLoading}
               >
                 {confirmLoading ? "Removing…" : "Remove"}

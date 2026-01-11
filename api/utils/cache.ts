@@ -110,7 +110,7 @@ export const getStoredSpotifyOwnership =
 
     if (cachedResponse) {
       const ownershipJSON = await cachedResponse.json();
-      return ownershipJSON as SpotifyOwnership[];
+      return ownershipJSON as SpotifyOwnership;
     }
 
     return null;

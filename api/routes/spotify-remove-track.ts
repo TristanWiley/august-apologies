@@ -1,8 +1,49 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
-import { generateJSONResponse } from "../utils/utils";
+import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
+import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+
+// Helper to convert Spotify URL to track URI
+function parseSpotifyTrackId(input: string): string | null {
+  // Handle spotify:track:xxx format
+  if (input.startsWith("spotify:track:")) {
+    return input;
+  }
+
+  // Handle https://open.spotify.com/track/xxx format
+  const match = input.match(/track\/([a-zA-Z0-9]+)/);
+  if (match) {
+    return `spotify:track:${match[1]}`;
+  }
+
+  return null;
+}
+
+// Helper to get valid Spotify client with token refresh
+async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
+  try {
+    // Get credentials from KV
+    const credentials = await getSpotifyCredentials(env);
+    if (!credentials || !credentials.access_token) {
+      console.error("Failed to get Spotify credentials from KV");
+      return null;
+    }
+
+    // Use the access token from credentials
+    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+      access_token: credentials.access_token,
+      token_type: "Bearer",
+      expires_in: credentials.access_token_expires_in || 3600,
+    } as AccessToken);
+
+    return spotifyClient;
+  } catch (err) {
+    console.error("Failed to get Spotify client:", err);
+    return null;
+  }
+}
 
 export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
   try {
@@ -11,47 +52,60 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
       sessionId?: string;
       trackUri?: string;
     };
-    if (!sessionId || !trackUri)
+
+    // Validate input
+    if (!sessionId || !trackUri) {
       return generateJSONResponse({ message: "Missing params" }, 400);
-
-    const connection = new DB(env);
-    const account = await connection.getAccountBySession(sessionId);
-    if (!account)
-      return generateJSONResponse({ message: "Invalid session" }, 401);
-    if (!account.is_subscriber)
-      return generateJSONResponse({ message: "Subscriber-only" }, 403);
-
-    if (!env.SPOTIFY_PLAYLIST_OWNER_TOKEN) {
-      return generateJSONResponse(
-        { message: "Server not configured to modify playlist" },
-        501
-      );
     }
 
-    // Spotify remove tracks
-    const res = await fetch(
-      `https://api.spotify.com/v1/playlists/${PLAYLIST_ID}/tracks`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${env.SPOTIFY_PLAYLIST_OWNER_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tracks: [{ uri: trackUri }] }),
-      }
-    );
+    // Parse track URI - accept both spotify:track: and URLs
+    const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
+    if (!parsedTrackUri) {
+      return generateJSONResponse({ message: "Invalid track URI or URL" }, 400);
+    }
 
-    if (!res.ok) {
-      console.error("spotify remove track failed", await res.text());
+    // Verify user session and subscriber status
+    const db = new DB(env);
+    const account = await db.getAccountBySession(sessionId);
+    if (!account) {
+      return generateJSONResponse({ message: "Invalid session" }, 401);
+    }
+    if (!account.is_subscriber) {
+      return generateJSONResponse({ message: "Subscriber-only" }, 403);
+    }
+
+    // Get Spotify client
+    const spotifyClient = await getSpotifyClient(env);
+    if (!spotifyClient) {
       return generateJSONResponse(
-        { message: "Failed to remove track from playlist" },
+        { message: "Failed to initialize Spotify client" },
         500
       );
     }
 
+    // Remove track from playlist
+    await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, [
+      parsedTrackUri,
+    ]);
+
+    console.log(
+      `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`
+    );
+
     return generateJSONResponse({ success: true }, 200);
   } catch (err) {
     console.error("spotifyRemoveTrackRoute error:", err);
+
+    // Check for specific Spotify API errors
+    if (err instanceof Error) {
+      if (err.message.includes("not found")) {
+        return generateJSONResponse(
+          { message: "Track or playlist not found" },
+          404
+        );
+      }
+    }
+
     return generateJSONResponse({ message: "Internal server error" }, 500);
   }
 };
