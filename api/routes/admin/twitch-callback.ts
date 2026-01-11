@@ -82,6 +82,14 @@ export const adminTwitchCallbackRoute = async (
     obtained_at: Date.now(),
   };
 
+  if (user.id !== "194331558") {
+    console.error("Unauthorized: not the channel owner", user.id, stored);
+    return generateJSONResponse(
+      { message: "Unauthorized: not the channel owner" },
+      403
+    );
+  }
+
   const kv = env.PERMISSIONS_KV;
 
   try {
