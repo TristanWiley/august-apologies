@@ -296,13 +296,6 @@ export const PlaylistPage: React.FC = () => {
                         currentUserTwitchId &&
                         ownerTwitchId &&
                         currentUserTwitchId === ownerTwitchId;
-                      if (ownership) {
-                        console.log(
-                          t.id,
-                          ownership,
-                          ownership["spotify:track:4b7qa1hR0fFmoFTA77cgEm"]
-                        );
-                      }
                       return (
                         <li
                           key={t.id || idx}
