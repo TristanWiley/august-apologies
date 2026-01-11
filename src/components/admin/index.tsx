@@ -5,12 +5,6 @@ export const AdminPage = () => {
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Admin</h2>
 
-      <div className="mb-6">
-        <p className="text-sm text-gray-600">
-          Use the admin tools below to manage channel integrations and tokens.
-        </p>
-      </div>
-
       <TwitchPermissions />
     </div>
   );

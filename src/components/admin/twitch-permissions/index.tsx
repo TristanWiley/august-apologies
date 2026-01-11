@@ -13,7 +13,6 @@ export const TwitchPermissions: React.FC = () => {
     "channel:read:subscriptions",
     "moderation:read",
     "channel:manage:redemptions",
-    "moderator:manage:automod",
   ].join(" ");
 
   const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${twitchClientID}&redirect_uri=${encodeURIComponent(
@@ -69,13 +68,17 @@ export const TwitchPermissions: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h3 className="text-xl font-bold">Twitch permissions</h3>
+      <h3 className="text-xl font-bold">Grant permissions</h3>
 
-      <div className="mt-4">
-        <p className="text-sm text-gray-600 mb-3">
-          Click the button to grant permissions for August's channel. These
-          tokens will be stored in Cloudflare KV so the backend can use them
-          when needed.
+      <div className="mt-4 p-4 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 shadow-sm">
+        <p className="text-sm text-gray-200 mb-3">
+          Hey August, this will give the site permissions to do a few things:
+          <ul className="list-disc list-inside">
+            <li>Check if users are subscribers</li>
+            <li>Get updates when someone subscribes</li>
+            <li>Manage channel point redemptions (future stuff)</li>
+          </ul>
+          Once you authorize, the site will handle the rest.
         </p>
 
         <button
