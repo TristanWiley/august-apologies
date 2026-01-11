@@ -34,6 +34,7 @@ export const accounts = sqliteTable("accounts", {
 
 // Not used for now
 export const songs = sqliteTable("songs", {
+  status: text().notNull().default("pending"), // pending, approved, rejected
   id: integer().primaryKey(),
   spotify_id: text().notNull().unique(),
   title: text().notNull(),

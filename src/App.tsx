@@ -29,11 +29,6 @@ export const App = () => {
       element: <AdminTwitchCallbackPage />,
       auth: false,
     },
-    {
-      path: "/spotify/spotify-redirect",
-      element: <AdminTwitchCallbackPage />,
-      auth: false,
-    },
     { path: "/view/:id", element: <ApologyView />, auth: false },
   ];
 
