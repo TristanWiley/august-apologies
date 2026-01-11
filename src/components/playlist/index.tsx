@@ -52,8 +52,8 @@ export const PlaylistPage: React.FC = () => {
   );
   const [error, setError] = React.useState<string | null>(null);
 
-  const [, setIsSubscriber] = React.useState(false);
-  // const [addingUri, setAddingUri] = React.useState("");
+  const [isSubscriber, setIsSubscriber] = React.useState(false);
+  const [addingUri, setAddingUri] = React.useState("");
   const sessionId =
     typeof window !== "undefined"
       ? localStorage.getItem("august-session-id")
@@ -158,23 +158,19 @@ export const PlaylistPage: React.FC = () => {
 
       <main className="w-full max-w-4xl mt-4">
         <div className="flex gap-4 items-center">
-          {playlist?.images?.[0] ? (
-            <img
-              src={playlist.images[0].url}
-              className="w-28 h-28 rounded"
-              alt="playlist"
-            />
-          ) : (
-            <div className="w-28 h-28 rounded bg-slate-700" />
-          )}
+          <img
+            src={
+              "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84c5b63fc85e3cf95e4b623b8b"
+            }
+            className="w-28 h-28 rounded"
+            alt="playlist"
+          />
 
           <div>
-            <h2 className="text-2xl font-bold">
-              {playlist?.name ?? "Community Playlist"}
-            </h2>
+            <h2 className="text-2xl font-bold">{"Blalist"}</h2>
             {playlist?.description ? (
               <p className="text-sm text-slate-300 mt-1">
-                {playlist.description}
+                A playlist made by August's community, for the stream!
               </p>
             ) : null}
             {playlist?.id ? (
@@ -282,7 +278,7 @@ export const PlaylistPage: React.FC = () => {
                     })}
                   </ul>
 
-                  {/* {isSubscriber ? (
+                  {isSubscriber ? (
                     <div className="mt-4 flex items-center gap-2">
                       <input
                         value={addingUri}
@@ -332,7 +328,7 @@ export const PlaylistPage: React.FC = () => {
                         Add
                       </button>
                     </div>
-                  ) : null} */}
+                  ) : null}
                 </>
               );
             }
