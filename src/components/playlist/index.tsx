@@ -53,6 +53,9 @@ export const PlaylistPage: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   const [isSubscriber, setIsSubscriber] = React.useState(false);
+  const [currentUserTwitchId, setCurrentUserTwitchId] = React.useState<
+    string | null
+  >(null);
   const [addTrackUri, setAddTrackUri] = React.useState("");
   const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
   const [isAddingTrack, setIsAddingTrack] = React.useState(false);
@@ -115,6 +118,7 @@ export const PlaylistPage: React.FC = () => {
         const json = await res.json();
         if (!mounted) return;
         setIsSubscriber(Boolean(json.account?.is_subscriber));
+        setCurrentUserTwitchId(json.account?.twitch_id || null);
       } catch (err) {
         console.warn("Failed to fetch account info", err);
       }
@@ -287,6 +291,11 @@ export const PlaylistPage: React.FC = () => {
                   <ul className="flex flex-col gap-3">
                     {playlist.tracks.map((t: Track, idx: number) => {
                       const ownerName = ownership?.[t.id]?.addedBy.displayName;
+                      const ownerTwitchId = ownership?.[t.id]?.addedBy.twitchId;
+                      const isOwner =
+                        currentUserTwitchId &&
+                        ownerTwitchId &&
+                        currentUserTwitchId === ownerTwitchId;
                       if (ownership) {
                         console.log(
                           t.id,
@@ -337,14 +346,14 @@ export const PlaylistPage: React.FC = () => {
                             </a>
                           ) : null}
 
-                          {/* {isSubscriber ? (
-                          <button
-                            onClick={() => setConfirmingTrack(t)}
-                            className="cursor-pointer ml-4 text-sm text-red-400"
-                          >
-                            Remove
-                          </button>
-                        ) : null} */}
+                          {isOwner ? (
+                            <button
+                              onClick={() => setConfirmingTrack(t)}
+                              className="cursor-pointer ml-4 text-sm text-red-400 hover:text-red-300 transition"
+                            >
+                              Remove
+                            </button>
+                          ) : null}
                         </li>
                       );
                     })}

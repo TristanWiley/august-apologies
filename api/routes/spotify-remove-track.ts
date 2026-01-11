@@ -2,6 +2,10 @@ import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
 import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
+import {
+  clearSpotifyPlaylistCache,
+  clearSpotifyOwnershipCache,
+} from "../utils/cache";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
@@ -64,6 +68,12 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
       return generateJSONResponse({ message: "Invalid track URI or URL" }, 400);
     }
 
+    // Extract track ID from URI to validate format
+    const trackIdMatch = parsedTrackUri.match(/spotify:track:([a-zA-Z0-9]+)/);
+    if (!trackIdMatch) {
+      return generateJSONResponse({ message: "Invalid track URI format" }, 400);
+    }
+
     // Verify user session and subscriber status
     const db = new DB(env);
     const account = await db.getAccountBySession(sessionId);
@@ -72,6 +82,18 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
     }
     if (!account.is_subscriber) {
       return generateJSONResponse({ message: "Subscriber-only" }, 403);
+    }
+
+    // Verify the user owns this track
+    const ownsTrack = await db.isTrackOwnedByUser(
+      parsedTrackUri,
+      account.twitch_id
+    );
+    if (!ownsTrack) {
+      return generateJSONResponse(
+        { message: "You can only remove tracks you added" },
+        403
+      );
     }
 
     // Get Spotify client
@@ -84,9 +106,16 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
     }
 
     // Remove track from playlist
-    await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, [
-      parsedTrackUri,
-    ]);
+    await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, {
+      tracks: [{ uri: parsedTrackUri }],
+    });
+
+    // Remove from database
+    await db.removePlaylistEntry(parsedTrackUri);
+
+    // Clear caches to force refresh
+    await clearSpotifyPlaylistCache(PLAYLIST_ID);
+    await clearSpotifyOwnershipCache();
 
     console.log(
       `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`

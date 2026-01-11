@@ -3,8 +3,8 @@ import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
 import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
 import {
-  getStoredSpotifyAccessToken,
-  storeSpotifyAccessToken,
+  clearSpotifyPlaylistCache,
+  clearSpotifyOwnershipCache,
 } from "../utils/cache";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
@@ -94,6 +94,10 @@ export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
 
     // Store ownership data
     await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
+
+    // Clear caches to force refresh
+    await clearSpotifyPlaylistCache(PLAYLIST_ID);
+    await clearSpotifyOwnershipCache();
 
     console.log(
       `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`

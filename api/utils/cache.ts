@@ -115,3 +115,17 @@ export const getStoredSpotifyOwnership =
 
     return null;
   };
+
+export const clearSpotifyPlaylistCache = async (
+  playlistId: string
+): Promise<void> => {
+  const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlistId}`;
+  const cache = caches.default;
+  await cache.delete(cacheKey);
+};
+
+export const clearSpotifyOwnershipCache = async (): Promise<void> => {
+  const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
+  const cache = caches.default;
+  await cache.delete(cacheKey);
+};

@@ -231,4 +231,24 @@ export class DB {
       })
       .onConflictDoNothing();
   }
+
+  public async isTrackOwnedByUser(
+    spotifyId: string,
+    twitchId: string
+  ): Promise<boolean> {
+    const row = await this.db
+      .select()
+      .from(schema.playlistEntries)
+      .where(eq(schema.playlistEntries.song_id, spotifyId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    return row ? row.twitch_id === twitchId : false;
+  }
+
+  public async removePlaylistEntry(spotifyId: string): Promise<void> {
+    await this.db
+      .delete(schema.playlistEntries)
+      .where(eq(schema.playlistEntries.song_id, spotifyId));
+  }
 }
