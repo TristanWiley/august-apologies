@@ -10,6 +10,7 @@ import { spotifyRemoveTrackRoute } from "./routes/spotify-remove-track";
 import { adminTwitchCallbackRoute } from "./routes/admin/twitch-callback";
 import { adminTwitchInfoRoute } from "./routes/admin/twitch-info";
 import { banUserRoute } from "./routes/admin/ban-user";
+import { clearCacheRoute } from "./routes/admin/clear-cache";
 import { eventsubCallbackRoute } from "./routes/eventsub-callback";
 import { spotifyOwnershipRoute } from "./routes/spotify-ownership";
 
@@ -33,6 +34,7 @@ router.post("/login", loginRoute);
 router.post("/admin/twitch/callback", adminTwitchCallbackRoute);
 router.get("/admin/twitch/info", adminTwitchInfoRoute);
 router.post("/admin/ban-user", banUserRoute);
+router.post("/admin/clear-cache", clearCacheRoute);
 
 // EventSub callback endpoint
 router.post("/api/eventsub/callback", eventsubCallbackRoute);
