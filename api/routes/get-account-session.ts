@@ -13,6 +13,17 @@ export const getAccountSessionRoute = async (request: IRequest, env: Env) => {
     const account = await connection.getAccountBySession(sessionId);
     if (!account) return generateJSONResponse({ message: "Not found" }, 404);
 
+    // Check if user is banned
+    if (account.is_banned) {
+      return generateJSONResponse(
+        {
+          message:
+            "Your account has been banned and cannot access this service.",
+        },
+        403
+      );
+    }
+
     return generateJSONResponse({ success: true, account }, 200);
   } catch (err) {
     console.error("getAccountSessionRoute error:", err);

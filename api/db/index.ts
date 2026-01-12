@@ -1,6 +1,6 @@
 import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import type { SpotifyOwnership } from "../types/db";
 
 export type AccountSelectType = typeof schema.accounts.$inferSelect;
@@ -250,5 +250,47 @@ export class DB {
     await this.db
       .delete(schema.playlistEntries)
       .where(eq(schema.playlistEntries.song_id, spotifyId));
+  }
+
+  // Ban management
+  public async banUser(twitchId: string): Promise<AccountSelectType | null> {
+    const response = await this.db
+      .update(schema.accounts)
+      .set({ is_banned: true, session_id: "" })
+      .where(
+        or(
+          eq(schema.accounts.twitch_id, twitchId),
+          eq(schema.accounts.display_name, twitchId)
+        )
+      )
+      .returning();
+
+    return response.length > 0 ? response[0] : null;
+  }
+
+  public async unbanUser(twitchId: string): Promise<AccountSelectType | null> {
+    const response = await this.db
+      .update(schema.accounts)
+      .set({ is_banned: false })
+      .where(
+        or(
+          eq(schema.accounts.twitch_id, twitchId),
+          eq(schema.accounts.display_name, twitchId)
+        )
+      )
+      .returning();
+
+    return response.length > 0 ? response[0] : null;
+  }
+
+  public async isBanned(twitchId: string): Promise<boolean> {
+    const record = await this.db
+      .select()
+      .from(schema.accounts)
+      .where(eq(schema.accounts.twitch_id, twitchId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    return record ? record.is_banned === true : false;
   }
 }

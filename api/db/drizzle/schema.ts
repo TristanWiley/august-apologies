@@ -27,6 +27,7 @@ export const accounts = sqliteTable("accounts", {
   is_owner: integer().default(0),
   subscription_type: text(),
   is_gifted_sub: integer({ mode: "boolean" }),
+  is_banned: integer({ mode: "boolean" }).default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(timestampDefault),
@@ -34,7 +35,6 @@ export const accounts = sqliteTable("accounts", {
 
 // Not used for now
 export const songs = sqliteTable("songs", {
-  status: text().notNull().default("pending"), // pending, approved, rejected
   id: integer().primaryKey(),
   spotify_id: text().notNull().unique(),
   title: text().notNull(),

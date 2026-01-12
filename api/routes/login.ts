@@ -125,6 +125,17 @@ export const loginRoute = async (
     );
   }
 
+  // Check if user is banned
+  const isBanned = await connection.isBanned(id);
+  if (isBanned) {
+    return generateJSONResponse(
+      {
+        message: "Your account has been banned and cannot access this service.",
+      },
+      403
+    );
+  }
+
   // Update account with new Twitch id and auth token
   const data = await connection.createUser({
     id,
