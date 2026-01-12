@@ -49,7 +49,11 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
   }
 }
 
-export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
+export const spotifyAddTrackRoute = async (
+  request: IRequest,
+  env: Env,
+  ctx: ExecutionContext
+) => {
   try {
     const body = await request.json();
     const { sessionId, trackUri } = body as {
@@ -128,17 +132,14 @@ export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
       ],
     };
 
-    request.waitUntil(
-      fetch(
-        "https://discord.com/api/webhooks/1460139515686682890/2jUbECH8xq2d_d5YCx4jmeRyI0CLPA8Wpq5T7b2Q6dfwIYW6uEtPmGOsQWVQ2rw2ERnz",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(discordMessage),
-        }
-      ).catch((webhookErr) => {
+    ctx.waitUntil(
+      fetch(env.PLAYLIST_DISCORD_WEBHOOK, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(discordMessage),
+      }).catch((webhookErr) => {
         console.error("Failed to send Discord webhook:", webhookErr);
       })
     );
