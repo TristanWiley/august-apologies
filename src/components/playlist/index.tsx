@@ -289,68 +289,72 @@ export const PlaylistPage: React.FC = () => {
               return (
                 <>
                   <ul className="flex flex-col gap-3">
-                    {[...playlist.tracks].reverse().map((t: Track, idx: number) => {
-                      const ownerName = ownership?.[t.id]?.addedBy.displayName;
-                      const ownerTwitchId = ownership?.[t.id]?.addedBy.twitchId;
-                      const isOwner =
-                        currentUserTwitchId &&
-                        ownerTwitchId &&
-                        currentUserTwitchId === ownerTwitchId;
-                      const trackNumber = playlist.tracks.length - idx;
-                      return (
-                        <li
-                          key={t.id || idx}
-                          className="flex items-center gap-4"
-                        >
-                          <div className="w-6 text-right text-sm text-slate-300">
-                            {trackNumber}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium">
-                              {t.name}
-                              {ownerName ? (
-                                // Highlight the owner name
-                                <span className="text-amber-400">
-                                  {" "}
-                                  added by {ownerName}
-                                </span>
-                              ) : (
-                                ""
-                              )}
+                    {[...playlist.tracks]
+                      .reverse()
+                      .map((t: Track, idx: number) => {
+                        const ownerName =
+                          ownership?.[t.id]?.addedBy.displayName;
+                        const ownerTwitchId =
+                          ownership?.[t.id]?.addedBy.twitchId;
+                        const isOwner =
+                          currentUserTwitchId &&
+                          ownerTwitchId &&
+                          currentUserTwitchId === ownerTwitchId;
+                        const trackNumber = playlist.tracks.length - idx;
+                        return (
+                          <li
+                            key={t.id || idx}
+                            className="flex items-center gap-4"
+                          >
+                            <div className="w-6 text-right text-sm text-slate-300">
+                              {trackNumber}
                             </div>
-                            <div className="text-sm text-slate-400">
-                              {t.artists} • {t.album}
+                            <div className="flex-1">
+                              <div className="font-medium">
+                                {t.name}
+                                {ownerName ? (
+                                  // Highlight the owner name
+                                  <span className="text-amber-400">
+                                    {" "}
+                                    added by {ownerName}
+                                  </span>
+                                ) : (
+                                  ""
+                                )}
+                              </div>
+                              <div className="text-sm text-slate-400">
+                                {t.artists} • {t.album}
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-sm text-slate-300 mr-4">
-                            {Math.floor(t.duration_ms / 1000 / 60)}:
-                            {String(
-                              Math.floor((t.duration_ms / 1000) % 60)
-                            ).padStart(2, "0")}
-                          </div>
+                            <div className="text-sm text-slate-300 mr-4">
+                              {Math.floor(t.duration_ms / 1000 / 60)}:
+                              {String(
+                                Math.floor((t.duration_ms / 1000) % 60)
+                              ).padStart(2, "0")}
+                            </div>
 
-                          {t.external_url ? (
-                            <a
-                              href={t.external_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-sm text-[#1DB954]"
-                            >
-                              Listen
-                            </a>
-                          ) : null}
+                            {t.external_url ? (
+                              <a
+                                href={t.external_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-[#1DB954]"
+                              >
+                                Listen
+                              </a>
+                            ) : null}
 
-                          {isOwner ? (
-                            <button
-                              onClick={() => setConfirmingTrack(t)}
-                              className="cursor-pointer ml-4 text-sm text-red-400 hover:text-red-300 transition"
-                            >
-                              Remove
-                            </button>
-                          ) : null}
-                        </li>
-                      );
-                    })}
+                            {isOwner ? (
+                              <button
+                                onClick={() => setConfirmingTrack(t)}
+                                className="cursor-pointer ml-4 text-sm text-red-400 hover:text-red-300 transition"
+                              >
+                                Remove
+                              </button>
+                            ) : null}
+                          </li>
+                        );
+                      })}
                   </ul>
                 </>
               );
