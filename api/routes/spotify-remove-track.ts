@@ -84,16 +84,19 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
       return generateJSONResponse({ message: "Subscriber-only" }, 403);
     }
 
-    // Verify the user owns this track
-    const ownsTrack = await db.isTrackOwnedByUser(
-      parsedTrackUri,
-      account.twitch_id
-    );
-    if (!ownsTrack) {
-      return generateJSONResponse(
-        { message: "You can only remove tracks you added" },
-        403
+    // If not owner, verify they own the track
+    if (!account.is_owner) {
+      // Verify the user owns this track
+      const ownsTrack = await db.isTrackOwnedByUser(
+        parsedTrackUri,
+        account.twitch_id
       );
+      if (!ownsTrack) {
+        return generateJSONResponse(
+          { message: "You can only remove tracks you added" },
+          403
+        );
+      }
     }
 
     // Get Spotify client

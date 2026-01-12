@@ -53,6 +53,7 @@ export const PlaylistPage: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   const [isSubscriber, setIsSubscriber] = React.useState(false);
+  const [isAdmin, setIsAdmin] = React.useState(false);
   const [currentUserTwitchId, setCurrentUserTwitchId] = React.useState<
     string | null
   >(null);
@@ -119,6 +120,7 @@ export const PlaylistPage: React.FC = () => {
         if (!mounted) return;
         setIsSubscriber(Boolean(json.account?.is_subscriber));
         setCurrentUserTwitchId(json.account?.twitch_id || null);
+        setIsAdmin(Boolean(json.account?.is_owner));
       } catch (err) {
         console.warn("Failed to fetch account info", err);
       }
@@ -262,6 +264,14 @@ export const PlaylistPage: React.FC = () => {
           </div>
         </div>
 
+        {isAdmin ? (
+          <div className="mt-4 p-4 bg-yellow-900 border border-yellow-700 rounded">
+            <p className="text-yellow-100 text-sm">
+              You are a playlist owner, you can add or remove any track.
+            </p>
+          </div>
+        ) : null}
+
         <div className="mt-6">
           {/* compute content to avoid nested ternaries */}
           {(() => {
@@ -344,7 +354,7 @@ export const PlaylistPage: React.FC = () => {
                               </a>
                             ) : null}
 
-                            {isOwner ? (
+                            {isAdmin || isOwner ? (
                               <button
                                 onClick={() => setConfirmingTrack(t)}
                                 className="cursor-pointer ml-4 text-sm text-red-400 hover:text-red-300 transition"
