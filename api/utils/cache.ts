@@ -52,6 +52,7 @@ export const storeSpotifyPlaylist = async (
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": `public, max-age=${PLAYLIST_TTL_SECONDS}`,
+      "Cache-Tag": "spotify-playlist",
     },
   });
 
@@ -89,10 +90,17 @@ export const storeSpotifyOwnership = async (
   const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
   const cache = caches.default;
 
-  const response = new Response(JSON.stringify(ownershipData), {
+  // Store with timestamp for manual staleness checking
+  const cachedData = {
+    ownership: ownershipData,
+    cachedAt: Date.now(),
+  };
+
+  const response = new Response(JSON.stringify(cachedData), {
     headers: {
       "Content-Type": "application/json",
       "Cache-Control": `public, max-age=${PLAYLIST_TTL_SECONDS}`,
+      "Cache-Tag": "spotify-ownership",
     },
   });
 
@@ -109,23 +117,85 @@ export const getStoredSpotifyOwnership =
     const cachedResponse = await cache.match(cacheKey);
 
     if (cachedResponse) {
-      const ownershipJSON = await cachedResponse.json();
-      return ownershipJSON as SpotifyOwnership;
+      const cachedData = (await cachedResponse.json()) as {
+        ownership: SpotifyOwnership;
+        cachedAt: number;
+      };
+
+      return cachedData.ownership as SpotifyOwnership;
     }
 
     return null;
   };
 
 export const clearSpotifyPlaylistCache = async (
-  playlistId: string
+  playlistId: string,
+  env: Env
 ): Promise<void> => {
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlistId}`;
   const cache = caches.default;
+
+  // Delete locally first
   await cache.delete(cacheKey);
+
+  // Purge globally using Cache-Tag via Cloudflare API
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${env.CLOUDFLARE_ZONE_ID}/purge_cache`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.CLOUDFLARE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tags: ["spotify-playlist"],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        "Failed to purge playlist cache by tag:",
+        await response.text()
+      );
+    } else {
+      console.log(`Purged spotify-playlist cache globally via tag`);
+    }
+  } catch (err) {
+    console.error("Error purging playlist cache by tag:", err);
+  }
 };
 
-export const clearSpotifyOwnershipCache = async (): Promise<void> => {
+export const clearSpotifyOwnershipCache = async (env: Env): Promise<void> => {
   const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
   const cache = caches.default;
+
+  // Delete locally first
   await cache.delete(cacheKey);
+
+  // Purge globally using Cache-Tag via Cloudflare API
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${env.CLOUDFLARE_ZONE_ID}/purge_cache`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.CLOUDFLARE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tags: ["spotify-ownership"],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to purge cache by tag:", await response.text());
+    } else {
+      console.log("Purged spotify-ownership cache globally via tag");
+    }
+  } catch (err) {
+    console.error("Error purging cache by tag:", err);
+  }
 };

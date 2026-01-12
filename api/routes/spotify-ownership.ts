@@ -19,12 +19,14 @@ export const spotifyOwnershipRoute = async (_request: IRequest, env: Env) => {
       );
     }
 
+    console.log("Ownership cache miss, fetching from DB");
     // If not cached, fetch from the database
     const connection = new DB(env);
     const ownershipData = await connection.getAllPlaylistOwnerships();
 
     // Update cache
     await storeSpotifyOwnership(ownershipData);
+    console.log("Stored ownership data in cache with tag");
 
     return generateJSONResponse(
       { ownership: ownershipData, cached: false },

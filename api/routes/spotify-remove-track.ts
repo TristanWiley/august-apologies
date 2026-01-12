@@ -114,8 +114,8 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
     await db.removePlaylistEntry(parsedTrackUri);
 
     // Clear caches to force refresh
-    await clearSpotifyPlaylistCache(PLAYLIST_ID);
-    await clearSpotifyOwnershipCache();
+    await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+    await clearSpotifyOwnershipCache(env);
 
     console.log(
       `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`

@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `is_banned` integer DEFAULT false;

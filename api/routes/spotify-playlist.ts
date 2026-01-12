@@ -76,16 +76,16 @@ async function fetchAndCachePlaylist(
     const playlist = await getPlaylistWithAllTracks(spotifyClient, PLAYLIST_ID);
 
     // Simplify tracks
-    const tracks = playlist.tracks.items.map(
-      (it: PlaylistedTrack<Track>, idx: number) => ({
+    const tracks = playlist.tracks.items
+      .map((it: PlaylistedTrack<Track>, idx: number) => ({
         id: it.track?.uri ?? `${playlist.id}:${idx}`,
         name: it.track?.name ?? "",
         artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
         duration_ms: it.track?.duration_ms ?? 0,
         external_url: it.track?.external_urls?.spotify ?? null,
         album: it.track?.album?.name ?? null,
-      })
-    );
+      }))
+      .reverse();
 
     const simplifiedPlaylist: SimplifiedPlaylistToReturn = {
       id: playlist.id,
@@ -106,7 +106,7 @@ async function fetchAndCachePlaylist(
 }
 
 export const spotifyPlaylistRoute = async (
-  request: IRequest,
+  _request: IRequest,
   env: Env,
   ctx: ExecutionContext
 ) => {

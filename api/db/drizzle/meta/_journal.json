@@ -43,6 +43,13 @@
       "when": 1768094101992,
       "tag": "0005_romantic_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1768196976189,
+      "tag": "0006_lucky_gambit",
+      "breakpoints": true
     }
   ]
 }

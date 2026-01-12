@@ -95,13 +95,15 @@ export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
     // Store ownership data
     await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
 
+    // Clear caches immediately to force refresh
+    await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+    await clearSpotifyOwnershipCache(env);
+
     // Get track details for Discord webhook
     const trackId = parsedTrackUri.replace("spotify:track:", "");
     const trackDetails = await spotifyClient.tracks.get(trackId);
 
-    // Send Discord webhook notification
-    const discordWebhookUrl =
-      "https://discord.com/api/webhooks/1460139515686682890/2jUbECH8xq2d_d5YCx4jmeRyI0CLPA8Wpq5T7b2Q6dfwIYW6uEtPmGOsQWVQ2rw2ERnz";
+    // Send Discord webhook notification with waitUntil
     const artists = trackDetails.artists.map((a) => a.name).join(", ");
     const discordMessage = {
       embeds: [
@@ -126,22 +128,20 @@ export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
       ],
     };
 
-    try {
-      await fetch(discordWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(discordMessage),
-      });
-    } catch (webhookErr) {
-      console.error("Failed to send Discord webhook:", webhookErr);
-      // Don't fail the request if webhook fails
-    }
-
-    // Clear caches to force refresh
-    await clearSpotifyPlaylistCache(PLAYLIST_ID);
-    await clearSpotifyOwnershipCache();
+    request.waitUntil(
+      fetch(
+        "https://discord.com/api/webhooks/1460139515686682890/2jUbECH8xq2d_d5YCx4jmeRyI0CLPA8Wpq5T7b2Q6dfwIYW6uEtPmGOsQWVQ2rw2ERnz",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(discordMessage),
+        }
+      ).catch((webhookErr) => {
+        console.error("Failed to send Discord webhook:", webhookErr);
+      })
+    );
 
     console.log(
       `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`
