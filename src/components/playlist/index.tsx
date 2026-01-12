@@ -289,20 +289,21 @@ export const PlaylistPage: React.FC = () => {
               return (
                 <>
                   <ul className="flex flex-col gap-3">
-                    {playlist.tracks.map((t: Track, idx: number) => {
+                    {[...playlist.tracks].reverse().map((t: Track, idx: number) => {
                       const ownerName = ownership?.[t.id]?.addedBy.displayName;
                       const ownerTwitchId = ownership?.[t.id]?.addedBy.twitchId;
                       const isOwner =
                         currentUserTwitchId &&
                         ownerTwitchId &&
                         currentUserTwitchId === ownerTwitchId;
+                      const trackNumber = playlist.tracks.length - idx;
                       return (
                         <li
                           key={t.id || idx}
                           className="flex items-center gap-4"
                         >
                           <div className="w-6 text-right text-sm text-slate-300">
-                            {idx + 1}
+                            {trackNumber}
                           </div>
                           <div className="flex-1">
                             <div className="font-medium">
