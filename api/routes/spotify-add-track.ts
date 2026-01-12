@@ -95,6 +95,50 @@ export const spotifyAddTrackRoute = async (request: IRequest, env: Env) => {
     // Store ownership data
     await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
 
+    // Get track details for Discord webhook
+    const trackId = parsedTrackUri.replace("spotify:track:", "");
+    const trackDetails = await spotifyClient.tracks.get(trackId);
+
+    // Send Discord webhook notification
+    const discordWebhookUrl =
+      "https://discord.com/api/webhooks/1460139515686682890/2jUbECH8xq2d_d5YCx4jmeRyI0CLPA8Wpq5T7b2Q6dfwIYW6uEtPmGOsQWVQ2rw2ERnz";
+    const artists = trackDetails.artists.map((a) => a.name).join(", ");
+    const discordMessage = {
+      embeds: [
+        {
+          title: trackDetails.name,
+          description: `Added by @${account.display_name}`,
+          fields: [
+            {
+              name: "Artist",
+              value: artists,
+              inline: false,
+            },
+            {
+              name: "Album",
+              value: trackDetails.album.name,
+              inline: false,
+            },
+          ],
+          url: trackDetails.external_urls.spotify,
+          color: 0x1db954, // Spotify green
+        },
+      ],
+    };
+
+    try {
+      await fetch(discordWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(discordMessage),
+      });
+    } catch (webhookErr) {
+      console.error("Failed to send Discord webhook:", webhookErr);
+      // Don't fail the request if webhook fails
+    }
+
     // Clear caches to force refresh
     await clearSpotifyPlaylistCache(PLAYLIST_ID);
     await clearSpotifyOwnershipCache();
