@@ -5,10 +5,15 @@ import { generateJSONResponse } from "../../utils/utils";
 export const banUserRoute = async (request: IRequest, env: Env) => {
   try {
     const requestData = await request.json();
-    const { twitchId, action } = requestData as {
+    const { twitchId, action, sessionId } = requestData as {
       twitchId: string;
       action: "ban" | "unban";
+      sessionId: string;
     };
+
+    if (!sessionId) {
+      return generateJSONResponse({ message: "Missing sessionId" }, 400);
+    }
 
     if (!twitchId) {
       return generateJSONResponse(
@@ -25,6 +30,15 @@ export const banUserRoute = async (request: IRequest, env: Env) => {
     }
 
     const connection = new DB(env);
+
+    // Verify user is admin
+    const adminUser = await connection.getAccountBySession(sessionId);
+    if (!adminUser || !adminUser.is_owner) {
+      return generateJSONResponse(
+        { message: "Unauthorized. Admin privileges required." },
+        403
+      );
+    }
 
     let result;
     if (action === "ban") {

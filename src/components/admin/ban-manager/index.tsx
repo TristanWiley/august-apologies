@@ -18,6 +18,13 @@ export function BanManager() {
     setMessage(null);
 
     try {
+      const sessionId = localStorage.getItem("august-session-id");
+      if (!sessionId) {
+        setMessage({ type: "error", text: "No session found. Please log in." });
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch("/api/admin/ban-user", {
         method: "POST",
         headers: {
@@ -26,6 +33,7 @@ export function BanManager() {
         body: JSON.stringify({
           twitchId: twitchId.trim(),
           action,
+          sessionId,
         }),
       });
 
