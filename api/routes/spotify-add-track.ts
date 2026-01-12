@@ -96,10 +96,6 @@ export const spotifyAddTrackRoute = async (
     const currentCount = await env.CACHE_KV.get(limitKey);
     const count = currentCount ? parseInt(currentCount, 10) : 0;
 
-    console.log(
-      `User ${account.display_name} (${account.twitch_id}) has added ${count}/${dailyLimit} songs today`
-    );
-
     if (count >= dailyLimit) {
       return generateJSONResponse(
         {

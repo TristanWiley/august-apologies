@@ -20,9 +20,13 @@ export class DB {
   public async createUser({
     id,
     displayName,
+    accessToken,
+    refreshToken,
   }: {
     id: string;
     displayName: string;
+    accessToken: string;
+    refreshToken: string;
   }): Promise<AccountSelectType | null> {
     // Create session id
     const sessionId = crypto.randomUUID();
@@ -33,10 +37,17 @@ export class DB {
         twitch_id: id,
         display_name: displayName,
         session_id: sessionId,
+        twitch_access_token: accessToken,
+        twitch_refresh_token: refreshToken,
       })
       .onConflictDoUpdate({
         target: schema.accounts.twitch_id,
-        set: { display_name: displayName, session_id: sessionId },
+        set: {
+          display_name: displayName,
+          session_id: sessionId,
+          twitch_access_token: accessToken,
+          twitch_refresh_token: refreshToken,
+        },
       })
       .returning();
 

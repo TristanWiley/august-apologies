@@ -4,7 +4,10 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
   const originName = window.location.origin;
   const redirectURL = `${originName}/twitch-callback`;
   const twitchClientID = "ykfl1k53cdzikvv1uwrasqyv0d10jk";
-  const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${twitchClientID}&redirect_uri=${redirectURL}`;
+  const scopes = ["user:read:subscriptions"];
+  const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&scope=${scopes
+    .map(encodeURIComponent)
+    .join("%20")}&client_id=${twitchClientID}&redirect_uri=${redirectURL}`;
 
   const [loading, setLoading] = useState(false);
 
@@ -62,10 +65,10 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
   }, [connectTwitch]);
 
   return (
-    <button
-      onClick={() => {
-        window.open(twitchAuthURL, "_blank");
-      }}
+    <a
+      href={twitchAuthURL}
+      target="_blank"
+      rel="noopener noreferrer"
       className="bg-[#8956FB] text-white px-4 py-2 rounded-md hover:bg-[#6f40d8] transition cursor-pointer"
     >
       {loading && (
@@ -76,6 +79,6 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
         />
       )}
       {loading ? "Logging in..." : "Log in with Twitch"}
-    </button>
+    </a>
   );
 };
