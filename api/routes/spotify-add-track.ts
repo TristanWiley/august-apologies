@@ -82,6 +82,9 @@ export const spotifyAddTrackRoute = async (
       return generateJSONResponse({ message: "Subscriber-only" }, 403);
     }
 
+    // Check if user is trusted or owner - they can add directly without approval
+    const canAddDirectly = account.is_owner || account.is_trusted;
+
     // Determine daily limit based on subscription tier
     let dailyLimit = 5; // Default for tier 1
     if (account.subscription_type === "2000") {
@@ -114,69 +117,104 @@ export const spotifyAddTrackRoute = async (
       );
     }
 
-    // Add track to playlist
-    await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
-      parsedTrackUri,
-    ]);
-
-    // Store ownership data
-    await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
-
-    // Increment daily song count
-    await env.CACHE_KV.put(limitKey, String(count + 1), {
-      expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
-    });
-
-    // Clear caches immediately to force refresh
-    await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
-    await clearSpotifyOwnershipCache(env);
-
-    // Get track details for Discord webhook
+    // Get track details first
     const trackId = parsedTrackUri.replace("spotify:track:", "");
     const trackDetails = await spotifyClient.tracks.get(trackId);
 
-    // Send Discord webhook notification with waitUntil
-    const artists = trackDetails.artists.map((a) => a.name).join(", ");
-    const discordMessage = {
-      embeds: [
+    if (canAddDirectly) {
+      // Trusted users and owners can add directly without approval
+      // Add track to playlist
+      await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
+        parsedTrackUri,
+      ]);
+
+      // Store ownership data
+      await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
+
+      // Increment daily song count
+      await env.CACHE_KV.put(limitKey, String(count + 1), {
+        expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
+      });
+
+      // Clear caches immediately to force refresh
+      await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+      await clearSpotifyOwnershipCache(env);
+
+      // Send Discord webhook notification with waitUntil
+      const artists = trackDetails.artists.map((a) => a.name).join(", ");
+      const discordMessage = {
+        embeds: [
+          {
+            title: trackDetails.name,
+            description: `Added by @${account.display_name}`,
+            fields: [
+              {
+                name: "Artist",
+                value: artists,
+                inline: false,
+              },
+              {
+                name: "Album",
+                value: trackDetails.album.name,
+                inline: false,
+              },
+            ],
+            url: trackDetails.external_urls.spotify,
+            color: 0x1db954, // Spotify green
+          },
+        ],
+      };
+
+      ctx.waitUntil(
+        fetch(env.PLAYLIST_DISCORD_WEBHOOK, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(discordMessage),
+        }).catch((webhookErr) => {
+          console.error("Failed to send Discord webhook:", webhookErr);
+        })
+      );
+
+      console.log(
+        `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`
+      );
+
+      return generateJSONResponse({ success: true, addedDirectly: true }, 200);
+    } else {
+      // Regular users need approval - add to pending songs
+      const artists = trackDetails.artists.map((a) => a.name).join(", ");
+
+      await db.addPendingSong({
+        spotifyId: parsedTrackUri,
+        trackName: trackDetails.name,
+        trackArtists: artists,
+        trackAlbum: trackDetails.album.name,
+        trackDurationMs: trackDetails.duration_ms,
+        externalUrl: trackDetails.external_urls.spotify,
+        addedByTwitchId: account.twitch_id,
+        addedByDisplayName: account.display_name,
+      });
+
+      // Increment daily song count
+      await env.CACHE_KV.put(limitKey, String(count + 1), {
+        expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
+      });
+
+      console.log(
+        `Track ${parsedTrackUri} queued for approval by ${account.display_name} (${account.twitch_id})`
+      );
+
+      return generateJSONResponse(
         {
-          title: trackDetails.name,
-          description: `Added by @${account.display_name}`,
-          fields: [
-            {
-              name: "Artist",
-              value: artists,
-              inline: false,
-            },
-            {
-              name: "Album",
-              value: trackDetails.album.name,
-              inline: false,
-            },
-          ],
-          url: trackDetails.external_urls.spotify,
-          color: 0x1db954, // Spotify green
+          success: true,
+          pending: true,
+          message: "Song submitted for approval",
         },
-      ],
-    };
-
-    ctx.waitUntil(
-      fetch(env.PLAYLIST_DISCORD_WEBHOOK, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(discordMessage),
-      }).catch((webhookErr) => {
-        console.error("Failed to send Discord webhook:", webhookErr);
-      })
-    );
-
-    console.log(
-      `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`
-    );
-
-    return generateJSONResponse({ success: true }, 200);
+        200
+      );
+    }
   } catch (err) {
     console.error("spotifyAddTrackRoute error:", err);
 

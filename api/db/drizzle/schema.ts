@@ -28,6 +28,7 @@ export const accounts = sqliteTable("accounts", {
   subscription_type: text(),
   is_gifted_sub: integer({ mode: "boolean" }),
   is_banned: integer({ mode: "boolean" }).default(false),
+  is_trusted: integer({ mode: "boolean" }).default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(timestampDefault),
@@ -61,4 +62,23 @@ export const playlistEntries = sqliteTable(
     index("idx_playlist_song_idx").on(table.song_id),
     index("idx_playlist_user_idx").on(table.twitch_id),
   ]
+);
+
+export const pendingSongs = sqliteTable(
+  "pending_songs",
+  {
+    id: integer().primaryKey(),
+    spotify_id: text().notNull().unique(),
+    track_name: text().notNull(),
+    track_artists: text().notNull(),
+    track_album: text(),
+    track_duration_ms: integer().notNull(),
+    external_url: text(),
+    added_by_twitch_id: text().notNull(),
+    added_by_display_name: text().notNull(),
+    created_at: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(timestampDefault),
+  },
+  (table) => [index("idx_pending_songs_added_by").on(table.added_by_twitch_id)]
 );

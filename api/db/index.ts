@@ -304,4 +304,65 @@ export class DB {
 
     return record ? record.is_banned === true : false;
   }
+
+  // Pending songs management
+  public async addPendingSong({
+    spotifyId,
+    trackName,
+    trackArtists,
+    trackAlbum,
+    trackDurationMs,
+    externalUrl,
+    addedByTwitchId,
+    addedByDisplayName,
+  }: {
+    spotifyId: string;
+    trackName: string;
+    trackArtists: string;
+    trackAlbum?: string | null;
+    trackDurationMs: number;
+    externalUrl?: string | null;
+    addedByTwitchId: string;
+    addedByDisplayName: string;
+  }): Promise<void> {
+    await this.db
+      .insert(schema.pendingSongs)
+      .values({
+        spotify_id: spotifyId,
+        track_name: trackName,
+        track_artists: trackArtists,
+        track_album: trackAlbum,
+        track_duration_ms: trackDurationMs,
+        external_url: externalUrl,
+        added_by_twitch_id: addedByTwitchId,
+        added_by_display_name: addedByDisplayName,
+      })
+      .onConflictDoNothing();
+  }
+
+  public async getPendingSongs(): Promise<
+    Array<typeof schema.pendingSongs.$inferSelect>
+  > {
+    return await this.db.select().from(schema.pendingSongs);
+  }
+
+  public async removePendingSong(spotifyId: string): Promise<void> {
+    await this.db
+      .delete(schema.pendingSongs)
+      .where(eq(schema.pendingSongs.spotify_id, spotifyId));
+  }
+
+  // Trusted user management
+  public async setTrustedUser(
+    twitchId: string,
+    isTrusted: boolean
+  ): Promise<AccountSelectType | null> {
+    const response = await this.db
+      .update(schema.accounts)
+      .set({ is_trusted: isTrusted })
+      .where(eq(schema.accounts.twitch_id, twitchId))
+      .returning();
+
+    return response.length > 0 ? response[0] : null;
+  }
 }

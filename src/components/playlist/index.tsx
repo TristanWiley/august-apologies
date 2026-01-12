@@ -10,6 +10,19 @@ type Track = {
   external_url?: string | null;
 };
 
+type PendingSong = {
+  id: number;
+  spotify_id: string;
+  track_name: string;
+  track_artists: string;
+  track_album?: string | null;
+  track_duration_ms: number;
+  external_url?: string | null;
+  added_by_twitch_id: string;
+  added_by_display_name: string;
+  created_at: string;
+};
+
 type Playlist = {
   id?: string;
   name?: string;
@@ -61,6 +74,12 @@ export const PlaylistPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
   const [isAddingTrack, setIsAddingTrack] = React.useState(false);
   const [addError, setAddError] = React.useState<string | null>(null);
+
+  // Pending songs state
+  const [pendingSongs, setPendingSongs] = React.useState<PendingSong[]>([]);
+  const [processingPending, setProcessingPending] = React.useState<
+    string | null
+  >(null);
 
   const sessionId =
     typeof window !== "undefined"
@@ -121,6 +140,11 @@ export const PlaylistPage: React.FC = () => {
         setIsSubscriber(Boolean(json.account?.is_subscriber));
         setCurrentUserTwitchId(json.account?.twitch_id || null);
         setIsAdmin(Boolean(json.account?.is_owner));
+
+        // Fetch pending songs if user is admin
+        if (json.account?.is_owner) {
+          fetchPendingSongs();
+        }
       } catch (err) {
         console.warn("Failed to fetch account info", err);
       }
@@ -130,6 +154,73 @@ export const PlaylistPage: React.FC = () => {
       mounted = false;
     };
   }, [sessionId]);
+
+  const fetchPendingSongs = async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetch(
+        `/api/spotify/playlist/pending?sessionId=${sessionId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch pending songs");
+      const data = await res.json();
+      setPendingSongs(data.pendingSongs || []);
+    } catch (err) {
+      console.error("Failed to fetch pending songs:", err);
+    }
+  };
+
+  const handleApproveSong = async (spotifyId: string) => {
+    setProcessingPending(spotifyId);
+    try {
+      const res = await fetch(`/api/spotify/playlist/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, spotifyId }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to approve song");
+      }
+
+      // Remove from pending list
+      setPendingSongs((prev) => prev.filter((s) => s.spotify_id !== spotifyId));
+
+      // Refresh playlist
+      const refreshed = await fetch("/api/spotify/playlist");
+      if (refreshed.ok) {
+        const data = await refreshed.json();
+        setPlaylist(data);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setProcessingPending(null);
+    }
+  };
+
+  const handleDisapproveSong = async (spotifyId: string) => {
+    setProcessingPending(spotifyId);
+    try {
+      const res = await fetch(`/api/spotify/playlist/disapprove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, spotifyId }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to disapprove song");
+      }
+
+      // Remove from pending list
+      setPendingSongs((prev) => prev.filter((s) => s.spotify_id !== spotifyId));
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setProcessingPending(null);
+    }
+  };
 
   const handleConfirmRemove = async () => {
     if (!confirmingTrack) return;
@@ -199,13 +290,26 @@ export const PlaylistPage: React.FC = () => {
         throw new Error(json.message || "Failed to add track");
       }
 
-      // Refresh playlist
-      const refreshed = await fetch("/api/spotify/playlist");
-      if (refreshed.ok) {
-        const data = await refreshed.json();
-        setPlaylist(data);
+      const result = await res.json();
+
+      // If song was added directly, refresh playlist
+      if (result.addedDirectly) {
+        const refreshed = await fetch("/api/spotify/playlist");
+        if (refreshed.ok) {
+          const data = await refreshed.json();
+          setPlaylist(data);
+        }
         setAddTrackUri("");
         setIsAddModalOpen(false);
+      } else if (result.pending) {
+        // Song is pending approval
+        setAddTrackUri("");
+        setIsAddModalOpen(false);
+        alert("Song submitted for approval!");
+        // Refresh pending songs if admin
+        if (isAdmin) {
+          fetchPendingSongs();
+        }
       }
     } catch (err) {
       console.error(err);
@@ -269,6 +373,69 @@ export const PlaylistPage: React.FC = () => {
             <p className="text-yellow-100 text-sm">
               You are a playlist owner, you can add or remove any track.
             </p>
+          </div>
+        ) : null}
+
+        {isAdmin && pendingSongs.length > 0 ? (
+          <div className="mt-4 p-4 bg-blue-900 border border-blue-700 rounded">
+            <h3 className="text-lg font-semibold text-blue-100 mb-3">
+              Pending Songs Approval ({pendingSongs.length})
+            </h3>
+            <div className="flex flex-col gap-3">
+              {pendingSongs.map((song) => (
+                <div
+                  key={song.id}
+                  className="flex items-center gap-4 bg-slate-800 p-3 rounded"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-white">
+                      {song.track_name}
+                    </div>
+                    <div className="text-sm text-slate-400">
+                      {song.track_artists}
+                      {song.track_album ? ` • ${song.track_album}` : ""}
+                    </div>
+                    <div className="text-xs text-amber-400 mt-1">
+                      Added by {song.added_by_display_name}
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    {Math.floor(song.track_duration_ms / 1000 / 60)}:
+                    {String(
+                      Math.floor((song.track_duration_ms / 1000) % 60)
+                    ).padStart(2, "0")}
+                  </div>
+                  {song.external_url ? (
+                    <a
+                      href={song.external_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[#1DB954]"
+                    >
+                      Listen
+                    </a>
+                  ) : null}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleApproveSong(song.spotify_id)}
+                      disabled={processingPending === song.spotify_id}
+                      className="cursor-pointer px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {processingPending === song.spotify_id
+                        ? "..."
+                        : "Approve"}
+                    </button>
+                    <button
+                      onClick={() => handleDisapproveSong(song.spotify_id)}
+                      disabled={processingPending === song.spotify_id}
+                      className="cursor-pointer px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {processingPending === song.spotify_id ? "..." : "Deny"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
 
