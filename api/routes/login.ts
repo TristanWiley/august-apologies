@@ -1,9 +1,6 @@
 import type { IRequest } from "itty-router";
 import { DB, type AccountSelectType } from "../db";
-import {
-  generateJSONResponse,
-  getValidBroadcasterAccessToken,
-} from "../utils/utils";
+import { generateJSONResponse } from "../utils/utils";
 import type {
   TwitchHelixUsersResponse,
   TwitchOAuthTokenResponse,
@@ -73,7 +70,7 @@ export const loginRoute = async (
     (await tokenResponse.json()) as TwitchOAuthTokenResponse;
 
   // Get the Twitch auth token and refresh token from the response
-  const { access_token } = tokenResponseJSON;
+  const { access_token, refresh_token } = tokenResponseJSON;
 
   // Get the Twitch user data from the Twitch API
   const userDataResponse = await fetch("https://api.twitch.tv/helix/users", {
@@ -140,6 +137,8 @@ export const loginRoute = async (
   const data = await connection.createUser({
     id,
     displayName: display_name,
+    accessToken: access_token,
+    refreshToken: refresh_token,
   });
 
   // If the result is not ok, return a 500 response
@@ -159,23 +158,28 @@ export const loginRoute = async (
   let isGiftedSub = false;
 
   try {
-    const accessToken = await getValidBroadcasterAccessToken(env);
-    if (accessToken) {
-      const twitchApi = new TwitchApi({
-        accessToken: accessToken,
-        clientId: env.TWITCH_CLIENT_ID,
-      });
+    const twitchApi = new TwitchApi({
+      accessToken: access_token,
+      clientId: env.TWITCH_CLIENT_ID,
+    });
 
-      const response = await twitchApi.subscriptions.checkUserSubscription({
-        broadcaster_id: env.TWITCH_BROADCASTER_ID,
-        user_id: id,
-      });
+    console.log(
+      "Checking subscription status for user ID:",
+      id,
+      env.TWITCH_BROADCASTER_ID
+    );
 
-      if (response.ok && response.data.data.length > 0) {
-        isSubscriber = true;
-        subscriptionType = response.data.data[0].tier;
-        isGiftedSub = response.data.data[0].is_gift;
-      }
+    const response = await twitchApi.subscriptions.checkUserSubscription({
+      broadcaster_id: env.TWITCH_BROADCASTER_ID,
+      user_id: id,
+    });
+
+    console.log("Subscription check response:", response);
+
+    if (response.ok && response.data.data.length > 0) {
+      isSubscriber = true;
+      subscriptionType = response.data.data[0].tier;
+      isGiftedSub = response.data.data[0].is_gift;
     }
   } catch (err) {
     console.warn("Error checking subscription status", err);

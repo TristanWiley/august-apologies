@@ -31,6 +31,8 @@ export const accounts = sqliteTable("accounts", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(timestampDefault),
+  twitch_access_token: text(),
+  twitch_refresh_token: text(),
 });
 
 // Not used for now
