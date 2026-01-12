@@ -22,6 +22,11 @@
       "preview_id": "2aabd539607e47bcba2df6b1ef19287a",
       "id": "2aabd539607e47bcba2df6b1ef19287a",
       "remote": true
+    },
+    {
+      "binding": "CACHE_KV",
+      "preview_id": "e726cfc8ac2446d08e952fa0051bbcbf",
+      "remote": true
     }
   ],
   "vars": {

@@ -82,6 +82,29 @@ export const spotifyAddTrackRoute = async (
       return generateJSONResponse({ message: "Subscriber-only" }, 403);
     }
 
+    // Determine daily limit based on subscription tier
+    let dailyLimit = 5; // Default for tier 1
+    if (account.subscription_type === "2000") {
+      dailyLimit = 10; // Tier 2
+    } else if (account.subscription_type === "3000") {
+      dailyLimit = 20; // Tier 3
+    }
+
+    // Check daily song limit
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const limitKey = `song_limit:${account.twitch_id}:${today}`;
+    const currentCount = await env.CACHE_KV.get(limitKey);
+    const count = currentCount ? parseInt(currentCount, 10) : 0;
+
+    if (count >= dailyLimit) {
+      return generateJSONResponse(
+        {
+          message: `Daily limit reached. You can add up to ${dailyLimit} songs per day.`,
+        },
+        429
+      );
+    }
+
     // Get Spotify client
     const spotifyClient = await getSpotifyClient(env);
     if (!spotifyClient) {
@@ -98,6 +121,11 @@ export const spotifyAddTrackRoute = async (
 
     // Store ownership data
     await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
+
+    // Increment daily song count
+    await env.CACHE_KV.put(limitKey, String(count + 1), {
+      expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
+    });
 
     // Clear caches immediately to force refresh
     await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
