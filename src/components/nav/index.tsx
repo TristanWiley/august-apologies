@@ -1,10 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router";
+import { LoginModal } from "../login-modal";
 
 export const Nav: React.FC = () => {
   const sessionId = localStorage.getItem("august-session-id");
   const location = useLocation();
   const path = location.pathname;
+  const [isLoginOpen, setIsLoginOpen] = React.useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("august-session-id");
@@ -21,50 +23,55 @@ export const Nav: React.FC = () => {
   const hideLogin = path === "/login";
 
   return (
-    <div className="fixed top-3 left-0 right-0 flex justify-center z-50 pointer-events-auto">
-      <div className="w-full max-w-4xl mx-4 flex items-center justify-between bg-slate-900/75 backdrop-blur-md px-4 py-2 rounded-xl shadow-xl border border-slate-800/30">
-        <div className="flex items-center gap-4">
-          <Link to="/" className={linkClass("/")}>
-            <span className="font-semibold">August</span>
-          </Link>
-          <Link to="/apology" className={linkClass("/apology")}>
-            Apology
-          </Link>
-          <Link to="/playlist" className={linkClass("/playlist")}>
-            Playlist
-          </Link>
-        </div>
+    <>
+      <div className="fixed top-3 left-0 right-0 flex justify-center z-50 pointer-events-auto">
+        <div className="w-full max-w-4xl mx-4 flex items-center justify-between bg-slate-900/75 backdrop-blur-md px-4 py-2 rounded-xl shadow-xl border border-slate-800/30">
+          <div className="flex items-center gap-4">
+            <Link to="/" className={linkClass("/")}>
+              <span className="font-semibold">August</span>
+            </Link>
+            <Link to="/apology" className={linkClass("/apology")}>
+              Apology
+            </Link>
+            <Link to="/playlist" className={linkClass("/playlist")}>
+              Playlist
+            </Link>
+          </div>
 
-        <div>
-          {!sessionId ? (
-            !hideLogin ? (
-              <Link
-                to="/login"
-                className="bg-[#8956FB] text-white px-3 py-1 rounded-md hover:bg-[#7741d5] transition-shadow shadow-sm"
-              >
-                Log in
-              </Link>
-            ) : null
-          ) : (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  window.location.href = "/account";
-                }}
-                className="bg-[#8956FB] text-white px-3 py-1 rounded-md hover:bg-[#7741d5] transition-shadow shadow-sm cursor-pointer"
-              >
-                Account
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-shadow shadow-sm cursor-pointer"
-              >
-                Log out
-              </button>
-            </div>
-          )}
+          <div>
+            {!sessionId ? (
+              !hideLogin ? (
+                <button
+                  onClick={() => setIsLoginOpen(true)}
+                  className="bg-[#8956FB] text-white px-3 py-1 rounded-md hover:bg-[#7741d5] transition-shadow shadow-sm cursor-pointer"
+                >
+                  Log in
+                </button>
+              ) : null
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    window.location.href = "/account";
+                  }}
+                  className="bg-[#8956FB] text-white px-3 py-1 rounded-md hover:bg-[#7741d5] transition-shadow shadow-sm cursor-pointer"
+                >
+                  Account
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-shadow shadow-sm cursor-pointer"
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Render modal outside fixed nav to avoid clipping */}
+      <LoginModal open={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+    </>
   );
 };
