@@ -5,12 +5,12 @@ import {
   getSpotifyCredentials,
 } from "../utils/utils";
 import {
-  SpotifyApi,
   type PlaylistedTrack,
   type Track,
   type AccessToken,
 } from "@spotify/web-api-ts-sdk";
 import { getStoredSpotifyPlaylist, storeSpotifyPlaylist } from "../utils/cache";
+import { createSpotifyApiClient } from "../utils/spotify-client";
 
 export interface SimplifiedPlaylistToReturn {
   id: string;
@@ -36,11 +36,11 @@ function decodeHtmlEntities(input?: string): string | undefined {
   if (!input) return input;
   // Numeric entities (decimal)
   let out = input.replace(/&#(\d+);/g, (_m, dec) =>
-    String.fromCharCode(Number(dec))
+    String.fromCharCode(Number(dec)),
   );
   // Numeric entities (hex)
   out = out.replace(/&#x([0-9a-fA-F]+);/g, (_m, hex) =>
-    String.fromCharCode(Number.parseInt(hex, 16))
+    String.fromCharCode(Number.parseInt(hex, 16)),
   );
   // Named entities
   const map: Record<string, string> = {
@@ -57,7 +57,7 @@ function decodeHtmlEntities(input?: string): string | undefined {
 
 // Background function to fetch and cache playlist
 async function fetchAndCachePlaylist(
-  env: Env
+  env: Env,
 ): Promise<SimplifiedPlaylistToReturn | null> {
   try {
     // Get credentials from KV
@@ -67,7 +67,7 @@ async function fetchAndCachePlaylist(
       return null;
     }
 
-    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+    const spotifyClient = createSpotifyApiClient(credentials.client_id, {
       access_token: credentials.access_token,
       token_type: "Bearer",
       expires_in: credentials.access_token_expires_in || 3600,
@@ -77,14 +77,21 @@ async function fetchAndCachePlaylist(
 
     // Simplify tracks
     const tracks = playlist.tracks.items.map(
-      (it: PlaylistedTrack<Track>, idx: number) => ({
-        id: it.track?.uri ?? `${playlist.id}:${idx}`,
-        name: it.track?.name ?? "",
-        artists: (it.track?.artists ?? []).map((a) => a.name ?? "").join(", "),
-        duration_ms: it.track?.duration_ms ?? 0,
-        external_url: it.track?.external_urls?.spotify ?? null,
-        album: it.track?.album?.name ?? null,
-      })
+      (it: PlaylistedTrack<Track>, idx: number) => {
+        const playableItem = ((it as unknown as { item?: Track }).item ??
+          it.track) as Track | undefined;
+
+        return {
+          id: playableItem?.uri ?? `${playlist.id}:${idx}`,
+          name: playableItem?.name ?? "",
+          artists: (playableItem?.artists ?? [])
+            .map((a) => a.name ?? "")
+            .join(", "),
+          duration_ms: playableItem?.duration_ms ?? 0,
+          external_url: playableItem?.external_urls?.spotify ?? null,
+          album: playableItem?.album?.name ?? null,
+        };
+      },
     );
 
     const simplifiedPlaylist: SimplifiedPlaylistToReturn = {
@@ -108,7 +115,7 @@ async function fetchAndCachePlaylist(
 export const spotifyPlaylistRoute = async (
   _request: IRequest,
   env: Env,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
 ) => {
   try {
     const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);

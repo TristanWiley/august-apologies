@@ -1,11 +1,12 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
-import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
+import type { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
 import {
   clearSpotifyPlaylistCache,
   clearSpotifyOwnershipCache,
 } from "../utils/cache";
+import { createSpotifyApiClient } from "../utils/spotify-client";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
@@ -20,7 +21,7 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
     }
 
     // Use the access token from credentials
-    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+    const spotifyClient = createSpotifyApiClient(credentials.client_id, {
       access_token: credentials.access_token,
       token_type: "Bearer",
       expires_in: credentials.access_token_expires_in || 3600,
@@ -36,7 +37,7 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
 export const spotifyApproveSongRoute = async (
   request: IRequest,
   env: Env,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
 ) => {
   try {
     const body = await request.json();
@@ -67,7 +68,7 @@ export const spotifyApproveSongRoute = async (
     if (!pendingSong) {
       return generateJSONResponse(
         { message: "Song not found in pending list" },
-        404
+        404,
       );
     }
 
@@ -76,7 +77,7 @@ export const spotifyApproveSongRoute = async (
     if (!spotifyClient) {
       return generateJSONResponse(
         { message: "Failed to initialize Spotify client" },
-        500
+        500,
       );
     }
 
@@ -130,11 +131,11 @@ export const spotifyApproveSongRoute = async (
         body: JSON.stringify(discordMessage),
       }).catch((webhookErr) => {
         console.error("Failed to send Discord webhook:", webhookErr);
-      })
+      }),
     );
 
     console.log(
-      `Track ${spotifyId} approved and added to playlist by ${account.display_name}`
+      `Track ${spotifyId} approved and added to playlist by ${account.display_name}`,
     );
 
     return generateJSONResponse({ success: true }, 200);
@@ -146,13 +147,13 @@ export const spotifyApproveSongRoute = async (
       if (err.message.includes("duplicate")) {
         return generateJSONResponse(
           { message: "Track already in playlist" },
-          409
+          409,
         );
       }
       if (err.message.includes("not found")) {
         return generateJSONResponse(
           { message: "Track or playlist not found" },
-          404
+          404,
         );
       }
     }
