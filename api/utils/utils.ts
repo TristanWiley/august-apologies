@@ -44,13 +44,13 @@ export const getValidBroadcasterAccessToken = async (env: Env) => {
         `https://id.twitch.tv/oauth2/token?grant_type=refresh_token&client_id=${env.TWITCH_CLIENT_ID}&client_secret=${env.TWITCH_CLIENT_SECRET}&refresh_token=${refresh_token}`,
         {
           method: "POST",
-        }
+        },
       );
 
       if (!tokenResponse.ok) {
         console.error(
           "Failed to refresh Twitch broadcaster token",
-          await tokenResponse.text()
+          await tokenResponse.text(),
         );
         return null;
       }
@@ -90,7 +90,7 @@ export const getValidBroadcasterAccessToken = async (env: Env) => {
 };
 
 export const getSpotifyCredentials = async (
-  env: Env
+  env: Env,
 ): Promise<KVSpotifyCredentials | null> => {
   try {
     const kv = env.PERMISSIONS_KV;
@@ -134,13 +134,13 @@ export const getSpotifyCredentials = async (
           client_id: credentials.client_id,
           client_secret: credentials.client_secret,
         }).toString(),
-      }
+      },
     );
 
     if (!refreshResponse.ok) {
       console.error(
         "Failed to refresh Spotify access token:",
-        await refreshResponse.text()
+        await refreshResponse.text(),
       );
       return null;
     }
@@ -170,13 +170,28 @@ export const getSpotifyCredentials = async (
 
 export const getPlaylistWithAllTracks = async (
   spotifyClient: SpotifyApi,
-  playlistId: string
+  playlistId: string,
 ): Promise<Playlist<Track>> => {
   const playlist = await spotifyClient.playlists.getPlaylist(playlistId);
 
-  const trackItems = [...playlist.tracks.items];
-  let fetchedAllTracks = !playlist.tracks.next;
-  let offset = playlist.tracks.limit;
+  const playlistWithCompat = playlist as Playlist<Track> & {
+    items?: {
+      href: string;
+      items: Array<unknown>;
+      limit: number;
+      next: string | null;
+      offset: number;
+      previous: string | null;
+      total: number;
+    };
+  };
+
+  const sourcePage = playlistWithCompat.tracks ?? playlistWithCompat.items;
+  const existingTracksPage = playlistWithCompat.tracks;
+
+  const trackItems = [...(sourcePage?.items ?? [])];
+  let fetchedAllTracks = sourcePage ? !sourcePage.next : false;
+  let offset = sourcePage?.limit ?? 0;
   const limit = 50;
 
   while (!fetchedAllTracks) {
@@ -185,14 +200,22 @@ export const getPlaylistWithAllTracks = async (
       undefined,
       undefined,
       limit,
-      offset
+      offset,
     );
     trackItems.push(...playlistTracksRes.items);
     offset = offset + limit;
     fetchedAllTracks = !playlistTracksRes.next;
   }
 
-  playlist.tracks.items = trackItems;
+  playlist.tracks = {
+    href: sourcePage?.href ?? existingTracksPage?.href ?? "",
+    items: trackItems as Playlist<Track>["tracks"]["items"],
+    limit: sourcePage?.limit ?? existingTracksPage?.limit ?? limit,
+    next: null,
+    offset: sourcePage?.offset ?? existingTracksPage?.offset ?? 0,
+    previous: sourcePage?.previous ?? existingTracksPage?.previous ?? null,
+    total: sourcePage?.total ?? existingTracksPage?.total ?? trackItems.length,
+  };
 
   return playlist;
 };

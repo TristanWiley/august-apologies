@@ -1,11 +1,12 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
-import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
+import type { SpotifyApi, AccessToken, Track } from "@spotify/web-api-ts-sdk";
 import {
   clearSpotifyPlaylistCache,
   clearSpotifyOwnershipCache,
 } from "../utils/cache";
+import { createSpotifyApiClient } from "../utils/spotify-client";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
@@ -36,7 +37,7 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
     }
 
     // Use the access token from credentials
-    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+    const spotifyClient = createSpotifyApiClient(credentials.client_id, {
       access_token: credentials.access_token,
       token_type: "Bearer",
       expires_in: credentials.access_token_expires_in || 3600,
@@ -52,7 +53,7 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
 export const spotifyAddTrackRoute = async (
   request: IRequest,
   env: Env,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
 ) => {
   try {
     const body = await request.json();
@@ -104,7 +105,7 @@ export const spotifyAddTrackRoute = async (
         {
           message: `Daily limit reached. You can add up to ${dailyLimit} songs per day.`,
         },
-        429
+        429,
       );
     }
 
@@ -113,13 +114,13 @@ export const spotifyAddTrackRoute = async (
     if (!spotifyClient) {
       return generateJSONResponse(
         { message: "Failed to initialize Spotify client" },
-        500
+        500,
       );
     }
 
     // Get track details first
     const trackId = parsedTrackUri.replace("spotify:track:", "");
-    const trackDetails = await spotifyClient.tracks.get(trackId);
+    const trackDetails = (await spotifyClient.tracks.get(trackId)) as Track;
 
     if (canAddDirectly) {
       // Trusted users and owners can add directly without approval
@@ -174,11 +175,11 @@ export const spotifyAddTrackRoute = async (
           body: JSON.stringify(discordMessage),
         }).catch((webhookErr) => {
           console.error("Failed to send Discord webhook:", webhookErr);
-        })
+        }),
       );
 
       console.log(
-        `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`
+        `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`,
       );
 
       return generateJSONResponse({ success: true, addedDirectly: true }, 200);
@@ -203,7 +204,7 @@ export const spotifyAddTrackRoute = async (
       });
 
       console.log(
-        `Track ${parsedTrackUri} queued for approval by ${account.display_name} (${account.twitch_id})`
+        `Track ${parsedTrackUri} queued for approval by ${account.display_name} (${account.twitch_id})`,
       );
 
       return generateJSONResponse(
@@ -212,7 +213,7 @@ export const spotifyAddTrackRoute = async (
           pending: true,
           message: "Song submitted for approval",
         },
-        200
+        200,
       );
     }
   } catch (err) {
@@ -223,13 +224,13 @@ export const spotifyAddTrackRoute = async (
       if (err.message.includes("duplicate")) {
         return generateJSONResponse(
           { message: "Track already in playlist" },
-          409
+          409,
         );
       }
       if (err.message.includes("not found")) {
         return generateJSONResponse(
           { message: "Track or playlist not found" },
-          404
+          404,
         );
       }
     }

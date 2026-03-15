@@ -1,11 +1,12 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
-import { SpotifyApi, type AccessToken } from "@spotify/web-api-ts-sdk";
+import type { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
 import {
   clearSpotifyPlaylistCache,
   clearSpotifyOwnershipCache,
 } from "../utils/cache";
+import { createSpotifyApiClient } from "../utils/spotify-client";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
@@ -36,7 +37,7 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
     }
 
     // Use the access token from credentials
-    const spotifyClient = SpotifyApi.withAccessToken(credentials.client_id, {
+    const spotifyClient = createSpotifyApiClient(credentials.client_id, {
       access_token: credentials.access_token,
       token_type: "Bearer",
       expires_in: credentials.access_token_expires_in || 3600,
@@ -89,12 +90,12 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
       // Verify the user owns this track
       const ownsTrack = await db.isTrackOwnedByUser(
         parsedTrackUri,
-        account.twitch_id
+        account.twitch_id,
       );
       if (!ownsTrack) {
         return generateJSONResponse(
           { message: "You can only remove tracks you added" },
-          403
+          403,
         );
       }
     }
@@ -104,7 +105,7 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
     if (!spotifyClient) {
       return generateJSONResponse(
         { message: "Failed to initialize Spotify client" },
-        500
+        500,
       );
     }
 
@@ -121,7 +122,7 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
     await clearSpotifyOwnershipCache(env);
 
     console.log(
-      `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`
+      `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`,
     );
 
     return generateJSONResponse({ success: true }, 200);
@@ -133,7 +134,7 @@ export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
       if (err.message.includes("not found")) {
         return generateJSONResponse(
           { message: "Track or playlist not found" },
-          404
+          404,
         );
       }
     }
