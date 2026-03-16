@@ -6,40 +6,40 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "not_found_handling": "single-page-application",
-    "directory": "./dist"
+    "directory": "./dist",
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_id": "6b91fa78-2d1a-4848-bd22-2af23535a8aa",
-      "remote": false,
-      "migrations_dir": "./api/db/drizzle"
-    }
+      "remote": true,
+      "migrations_dir": "./api/db/drizzle",
+    },
   ],
   "kv_namespaces": [
     {
       "binding": "PERMISSIONS_KV",
       "preview_id": "2aabd539607e47bcba2df6b1ef19287a",
       "id": "2aabd539607e47bcba2df6b1ef19287a",
-      "remote": true
+      "remote": true,
     },
     {
       "binding": "CACHE_KV",
       "id": "e726cfc8ac2446d08e952fa0051bbcbf",
-      "remote": true
-    }
+      "remote": true,
+    },
   ],
   "vars": {
     "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk",
-    "SPOTIFY_CLIENT_ID": "0b9ad9516134433580037eb764782952",
-    "TWITCH_BROADCASTER_ID": "194331558"
+    "SPOTIFY_CLIENT_ID": "281ecdc6defb4bfbb81374964b824e71",
+    "TWITCH_BROADCASTER_ID": "194331558",
   },
   "observability": {
     "logs": {
       "enabled": true,
       "head_sampling_rate": 1,
       "invocation_logs": true,
-      "persist": true
-    }
-  }
+      "persist": true,
+    },
+  },
 }
