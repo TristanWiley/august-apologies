@@ -1,4 +1,4 @@
-import { DvdScreensaver } from "react-dvd-screensaver";
+import { useDvdScreensaver } from "react-dvd-screensaver";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApologySubmission } from "./components/apology-submission";
 import { HomePage } from "./components/homepage";
@@ -10,9 +10,13 @@ import { AdminTwitchCallbackPage } from "./components/admin/twitch-callback";
 import { ApologyView } from "./components/apology-view";
 import { LoginPage } from "./components/login-page";
 import { AccountPage } from "./components/account-page";
+import { Nav } from "./components/nav";
 
 export const App = () => {
   const sessionId = localStorage.getItem("august-session-id");
+  const { containerRef, elementRef, impactCount } = useDvdScreensaver({
+    speed: 3,
+  });
 
   // Centralized route config — add new routes here as needed
   const routes = [
@@ -44,7 +48,7 @@ export const App = () => {
             />
           ) : (
             <Route key={r.path} path={r.path} element={r.element} />
-          )
+          ),
         )}
 
         <Route path="*" element={<Navigate to="/" />} />
@@ -52,20 +56,29 @@ export const App = () => {
     </BrowserRouter>
   );
 
-  return (
-    <div className="w-full h-full">
-      <div className="w-full h-full pt-20">{content}</div>
+  const accent = ["#8d86c9", "#f9a03f", "#59d7ff", "#ff6b8a"];
+  const logoTint = accent[impactCount % accent.length];
 
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-50">
-        <DvdScreensaver>
-          <div className="w-fit opacity-30">
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      <div className="relative z-10 w-full h-full pt-20">{content}</div>
+
+      <div
+        ref={containerRef}
+        className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+      >
+        <div ref={elementRef} className="absolute top-0 left-0">
+          <div
+            className="w-fit opacity-30 transition-[filter,transform] duration-300"
+            style={{ filter: `drop-shadow(0 0 24px ${logoTint}66)` }}
+          >
             <img
               src="/augRiot.webp"
               alt=""
               className="w-16 h-16 animate-spin"
             />
           </div>
-        </DvdScreensaver>
+        </div>
       </div>
     </div>
   );

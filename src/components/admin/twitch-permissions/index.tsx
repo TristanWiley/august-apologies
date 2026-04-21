@@ -16,7 +16,7 @@ export const TwitchPermissions: React.FC = () => {
   ].join(" ");
 
   const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${twitchClientID}&redirect_uri=${encodeURIComponent(
-    redirectURL
+    redirectURL,
   )}&scope=${encodeURIComponent(scopes)}&force_verify=true`;
 
   const fetchInfo = useCallback(async () => {
@@ -68,7 +68,7 @@ export const TwitchPermissions: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h3 className="text-xl font-bold">Grant permissions</h3>
+      <h3 className="text-xl font-bold">Grant Twitch permissions</h3>
 
       <div className="mt-4 p-4 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 shadow-sm">
         <p className="text-sm text-gray-200 mb-3">
