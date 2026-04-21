@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Editor, EditorProvider } from "react-simple-wysiwyg";
-import { Nav } from "../nav";
 
 export const ApologyView: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -38,7 +37,6 @@ export const ApologyView: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full flex-col gap-4 px-4">
-        <Nav />
         <div className="w-full max-w-3xl flex items-center justify-center">
           <p className="text-xl">Loading...</p>
           <img
@@ -55,7 +53,6 @@ export const ApologyView: React.FC = () => {
   if (!username || !subject) {
     return (
       <div className="flex items-center justify-center h-full flex-col gap-4 px-4">
-        <Nav />
         <div className="w-full max-w-3xl flex items-center justify-center">
           <p className="text-xl">Apology not found.</p>
         </div>
@@ -66,8 +63,6 @@ export const ApologyView: React.FC = () => {
   return (
     <EditorProvider>
       <div className="flex items-center justify-center h-full w-full flex-col gap-4 px-4">
-        <Nav />
-
         <div className="w-full max-w-3xl flex flex-col items-stretch gap-4">
           <h1 className="text-2xl font-bold">
             Apology Submission from {username}

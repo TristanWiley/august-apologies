@@ -11,21 +11,20 @@ import {
   EditorProvider,
   Toolbar,
 } from "react-simple-wysiwyg";
-import { Nav } from "../nav";
 import { Link } from "react-router";
 
 export const ApologySubmission: React.FC = () => {
   const [apology, setApology] = useState(
-    localStorage.getItem("august-temp-apology") || ""
+    localStorage.getItem("august-temp-apology") || "",
   );
   const [subject, setSubject] = useState(
-    localStorage.getItem("august-temp-subject") || ""
+    localStorage.getItem("august-temp-subject") || "",
   );
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     const yay = confirm(
-      "Are you sure you want to submit? This can't be undone."
+      "Are you sure you want to submit? This can't be undone.",
     );
 
     const sessionId = localStorage.getItem("august-session-id");
@@ -56,7 +55,6 @@ export const ApologySubmission: React.FC = () => {
     return (
       <EditorProvider>
         <div className="flex items-center justify-center h-full flex-col gap-4 px-4">
-          <Nav />
           <div className="w-full max-w-3xl flex flex-col items-center gap-2">
             <h1 className="text-center text-2xl font-bold">
               Apology Submitted
@@ -73,8 +71,6 @@ export const ApologySubmission: React.FC = () => {
   return (
     <EditorProvider>
       <div className="flex items-center justify-center h-full w-full flex-col gap-4 px-4">
-        <Nav />
-
         <div className="w-full max-w-3xl flex flex-col items-stretch gap-4">
           <h1 className="text-center text-2xl font-bold">Apology Submission</h1>
           <p className="text-center text-xl">

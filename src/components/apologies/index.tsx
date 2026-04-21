@@ -1,5 +1,4 @@
 import React from "react";
-import { Nav } from "../nav";
 import { Link } from "react-router";
 
 export const ApologiesPage: React.FC = () => {
@@ -19,7 +18,7 @@ export const ApologiesPage: React.FC = () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/apologies?page=${page}&pageSize=${pageSize}`
+          `/api/apologies?page=${page}&pageSize=${pageSize}`,
         );
         if (!res.ok) throw new Error("Failed to load apologies");
         const data = await res.json();
@@ -45,8 +44,6 @@ export const ApologiesPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
-      <Nav />
-
       <main className="w-full max-w-4xl mt-4">
         <h1 className="text-2xl font-bold">Public Apologies</h1>
 

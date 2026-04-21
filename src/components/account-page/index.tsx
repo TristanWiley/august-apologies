@@ -1,13 +1,9 @@
-import { Nav } from "../nav";
-
 export const AccountPage: React.FC = () => {
   const isSubscriber = true; // Placeholder for actual subscriber status
   const subscriberTier = 1; // Placeholder for actual subscriber tier
 
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
-      <Nav />
-
       <main className="w-full max-w-4xl mt-4">
         <h1 className="text-2xl font-bold mb-5">Account Management</h1>
 

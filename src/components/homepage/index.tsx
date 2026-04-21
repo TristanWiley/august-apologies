@@ -1,4 +1,3 @@
-import { Nav } from "../nav";
 import React, { useEffect, useRef } from "react";
 import { useScript } from "../../hooks/useScript";
 
@@ -78,8 +77,6 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col items-center justify-center gap-6 px-4">
-      <Nav />
-
       <main className="w-full max-w-5xl flex flex-col items-center gap-2 justify-center">
         <h1 className="text-4xl text-center flex items-center gap-3">
           <span>August</span>

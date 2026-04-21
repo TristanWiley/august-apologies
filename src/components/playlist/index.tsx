@@ -1,5 +1,4 @@
 import React from "react";
-import { Nav } from "../nav";
 
 type Track = {
   id: string;
@@ -61,7 +60,7 @@ export const PlaylistPage: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [playlist, setPlaylist] = React.useState<Playlist | null>(null);
   const [ownership, setOwnership] = React.useState<SpotifyOwnership | null>(
-    null
+    null,
   );
   const [error, setError] = React.useState<string | null>(null);
 
@@ -88,7 +87,7 @@ export const PlaylistPage: React.FC = () => {
 
   // Confirmation modal state for removing tracks
   const [confirmingTrack, setConfirmingTrack] = React.useState<Track | null>(
-    null
+    null,
   );
   const [confirmLoading, setConfirmLoading] = React.useState(false);
 
@@ -159,7 +158,7 @@ export const PlaylistPage: React.FC = () => {
     if (!sessionId) return;
     try {
       const res = await fetch(
-        `/api/spotify/playlist/pending?sessionId=${sessionId}`
+        `/api/spotify/playlist/pending?sessionId=${sessionId}`,
       );
       if (!res.ok) throw new Error("Failed to fetch pending songs");
       const data = await res.json();
@@ -242,7 +241,7 @@ export const PlaylistPage: React.FC = () => {
               ...p,
               tracks: p.tracks.filter((x) => x.id !== confirmingTrack.id),
             }
-          : p
+          : p,
       );
       setConfirmingTrack(null);
     } catch (err) {
@@ -275,7 +274,7 @@ export const PlaylistPage: React.FC = () => {
         trackUri = `spotify:track:${match[1]}`;
       } else if (!trackUri.startsWith("spotify:track:")) {
         throw new Error(
-          "Invalid track URI. Use spotify:track:xxx format or a Spotify link"
+          "Invalid track URI. Use spotify:track:xxx format or a Spotify link",
         );
       }
 
@@ -322,8 +321,6 @@ export const PlaylistPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
-      <Nav />
-
       <main className="w-full max-w-4xl mt-4">
         <div className="flex gap-4 items-center">
           <img
@@ -402,7 +399,7 @@ export const PlaylistPage: React.FC = () => {
                   <div className="text-sm text-slate-300">
                     {Math.floor(song.track_duration_ms / 1000 / 60)}:
                     {String(
-                      Math.floor((song.track_duration_ms / 1000) % 60)
+                      Math.floor((song.track_duration_ms / 1000) % 60),
                     ).padStart(2, "0")}
                   </div>
                   {song.external_url ? (
@@ -506,7 +503,7 @@ export const PlaylistPage: React.FC = () => {
                             <div className="text-sm text-slate-300 mr-4">
                               {Math.floor(t.duration_ms / 1000 / 60)}:
                               {String(
-                                Math.floor((t.duration_ms / 1000) % 60)
+                                Math.floor((t.duration_ms / 1000) % 60),
                               ).padStart(2, "0")}
                             </div>
 

@@ -1,5 +1,6 @@
 import { useDvdScreensaver } from "react-dvd-screensaver";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import React from "react";
 import { ApologySubmission } from "./components/apology-submission";
 import { HomePage } from "./components/homepage";
 import { PlaylistPage } from "./components/playlist";
@@ -12,6 +13,20 @@ import { LoginPage } from "./components/login-page";
 import { AccountPage } from "./components/account-page";
 import { Nav } from "./components/nav";
 
+const AppFrame: React.FC<{
+  children: React.ReactNode;
+  showNav?: boolean;
+}> = ({ children, showNav = true }) => {
+  return (
+    <>
+      {showNav ? <Nav /> : null}
+      <div className={showNav ? "w-full h-full pt-20" : "w-full h-full"}>
+        {children}
+      </div>
+    </>
+  );
+};
+
 export const App = () => {
   const sessionId = localStorage.getItem("august-session-id");
   const { containerRef, elementRef, impactCount } = useDvdScreensaver({
@@ -20,20 +35,41 @@ export const App = () => {
 
   // Centralized route config — add new routes here as needed
   const routes = [
-    { path: "/", element: <HomePage />, auth: false },
-    { path: "/account", element: <AccountPage />, auth: true },
-    { path: "/apology", element: <ApologySubmission />, auth: true },
-    { path: "/apologies", element: <ApologiesPage />, auth: false },
-    { path: "/playlist", element: <PlaylistPage />, auth: false },
-    { path: "/login", element: <LoginPage />, auth: false },
-    { path: "/twitch-callback", element: <TwitchCallbackPage />, auth: false },
-    { path: "/admin", element: <AdminPage />, auth: false },
+    { path: "/", element: <HomePage />, auth: false, showNav: true },
+    { path: "/account", element: <AccountPage />, auth: true, showNav: true },
+    {
+      path: "/apology",
+      element: <ApologySubmission />,
+      auth: true,
+      showNav: true,
+    },
+    {
+      path: "/apologies",
+      element: <ApologiesPage />,
+      auth: false,
+      showNav: true,
+    },
+    {
+      path: "/playlist",
+      element: <PlaylistPage />,
+      auth: false,
+      showNav: true,
+    },
+    { path: "/login", element: <LoginPage />, auth: false, showNav: true },
+    {
+      path: "/twitch-callback",
+      element: <TwitchCallbackPage />,
+      auth: false,
+      showNav: false,
+    },
+    { path: "/admin", element: <AdminPage />, auth: false, showNav: false },
     {
       path: "/admin/twitch-callback",
       element: <AdminTwitchCallbackPage />,
       auth: false,
+      showNav: false,
     },
-    { path: "/view/:id", element: <ApologyView />, auth: false },
+    { path: "/view/:id", element: <ApologyView />, auth: false, showNav: true },
   ];
 
   const content = (
@@ -47,7 +83,11 @@ export const App = () => {
               element={<Navigate to={`/login?redirect=${r.path}`} />}
             />
           ) : (
-            <Route key={r.path} path={r.path} element={r.element} />
+            <Route
+              key={r.path}
+              path={r.path}
+              element={<AppFrame showNav={r.showNav}>{r.element}</AppFrame>}
+            />
           ),
         )}
 
@@ -61,7 +101,7 @@ export const App = () => {
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      <div className="relative z-10 w-full h-full pt-20">{content}</div>
+      <div className="relative z-10 w-full h-full">{content}</div>
 
       <div
         ref={containerRef}
