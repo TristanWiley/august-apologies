@@ -73,11 +73,13 @@ export const SpotifyPermissions: React.FC = () => {
       <div className="mt-4 p-4 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 shadow-sm">
         <p className="text-sm text-gray-200 mb-3">
           Hey August, this will give the site permissions to do a few things:
-          <ul className="list-disc list-inside">
-            <li>Check if users are subscribers</li>
-            <li>Get updates when someone subscribes</li>
-            <li>Manage channel point redemptions (future stuff)</li>
-          </ul>
+        </p>
+        <ul className="list-disc list-inside">
+          <li>Check if users are subscribers</li>
+          <li>Get updates when someone subscribes</li>
+          <li>Manage channel point redemptions (future stuff)</li>
+        </ul>
+        <p className="text-sm text-gray-200">
           Once you authorize, the site will handle the rest.
         </p>
 
