@@ -12,6 +12,7 @@ import { ApologyView } from "./components/apology-view";
 import { LoginPage } from "./components/login-page";
 import { AccountPage } from "./components/account-page";
 import { Nav } from "./components/nav";
+import { SpotifyCallbackPage } from "./components/spotify-callback";
 
 const AppFrame: React.FC<{
   children: React.ReactNode;
@@ -59,6 +60,12 @@ export const App = () => {
     {
       path: "/twitch-callback",
       element: <TwitchCallbackPage />,
+      auth: false,
+      showNav: false,
+    },
+    {
+      path: "/spotify-callback",
+      element: <SpotifyCallbackPage />,
       auth: false,
       showNav: false,
     },

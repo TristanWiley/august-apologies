@@ -1,0 +1,26 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+
+export const SpotifyCallbackPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    console.log("Spotify callback code:", code);
+
+    if (!code) {
+      return;
+    }
+
+    // Store the code in local storage
+    // This is used to get the access token
+    localStorage.setItem(`august-admin-spotify-code`, code);
+
+    // Close the tab
+    window.close();
+  }, [navigate]);
+
+  return <div></div>;
+};

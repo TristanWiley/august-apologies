@@ -2,6 +2,20 @@ import type { IRequest } from "itty-router";
 import { generateJSONResponse } from "../../utils/utils";
 import { DB } from "../../db";
 
+export const isAdmin = async (
+  sessionId: string,
+  env: Env,
+): Promise<boolean> => {
+  try {
+    const connection = new DB(env);
+    const adminUser = await connection.getAccountBySession(sessionId);
+    return !!adminUser?.is_owner;
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return false;
+  }
+};
+
 export const isAdminRoute = async (request: IRequest, env: Env) => {
   try {
     const url = new URL(request.url);
@@ -11,11 +25,9 @@ export const isAdminRoute = async (request: IRequest, env: Env) => {
       return generateJSONResponse({ message: "Missing sessionId" }, 400);
     }
 
-    const connection = new DB(env);
+    const adminUser = await isAdmin(sessionId, env);
 
-    // Verify user is admin
-    const adminUser = await connection.getAccountBySession(sessionId);
-    if (!adminUser || !adminUser.is_owner) {
+    if (!adminUser) {
       return generateJSONResponse(
         { message: "Unauthorized. Admin privileges required." },
         403,

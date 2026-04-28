@@ -18,6 +18,8 @@ import { setTrustedUserRoute } from "./routes/admin/set-trusted-user";
 import { eventsubCallbackRoute } from "./routes/eventsub-callback";
 import { spotifyOwnershipRoute } from "./routes/spotify-ownership";
 import { isAdminRoute } from "./routes/admin/is-admin";
+import { adminSpotifyCallbackRoute } from "./routes/admin/spotify-callback";
+import { adminSpotifyInfoRoute } from "./routes/admin/spotify-info";
 
 const { preflight, corsify } = cors();
 
@@ -38,6 +40,8 @@ router.post("/login", loginRoute);
 
 router.post("/admin/twitch/callback", adminTwitchCallbackRoute);
 router.get("/admin/twitch/info", adminTwitchInfoRoute);
+router.post("/admin/spotify/callback", adminSpotifyCallbackRoute);
+router.get("/admin/spotify/info", adminSpotifyInfoRoute);
 router.post("/admin/ban-user", banUserRoute);
 router.post("/admin/clear-cache", clearCacheRoute);
 router.post("/admin/set-trusted-user", setTrustedUserRoute);

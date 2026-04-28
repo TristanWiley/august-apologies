@@ -78,8 +78,8 @@ export const AdminPage = () => {
       <BanManager />
       <TrustedUserManager />
       <CacheManager />
-      <TwitchPermissions />
       <SpotifyPermissions />
+      <TwitchPermissions />
     </div>
   );
 };
