@@ -4,6 +4,7 @@ import { CacheManager } from "./cache-manager";
 import { TrustedUserManager } from "./trusted-user-manager";
 import { SpotifyPermissions } from "./spotify-permissions";
 import { useState, useEffect } from "react";
+import { LoginButton } from "../login-button";
 
 const ADMIN_STATUS_CACHE_PREFIX = "august-admin-status:";
 
@@ -66,6 +67,8 @@ export const AdminPage = () => {
           <p className="text-xl pb-4">
             You do not have permission to view this page.
           </p>
+          <p>If you are August, login below.</p>
+          <LoginButton onAuth={() => window.location.reload()} />
         </div>
       </div>
     );
