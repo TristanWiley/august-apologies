@@ -3,9 +3,14 @@ import type { SimplifiedPlaylistToReturn } from "../routes/spotify-playlist";
 import type { SpotifyOwnership } from "../types/db";
 
 const PLAYLIST_TTL_SECONDS = 86400; // 24 hours (we check staleness manually)
+const SONG_ADDER_TTL_SECONDS = 60 * 60 * 24 * 365;
+
+type SongAdderCacheEntry = {
+  displayName: string | null;
+};
 
 export const storeSpotifyAccessToken = async (
-  token: AccessToken
+  token: AccessToken,
 ): Promise<void> => {
   const cacheKey = "https://kiriko.tv/api/spotify-access-token";
   const cache = caches.default;
@@ -37,7 +42,7 @@ export const getStoredSpotifyAccessToken =
   };
 
 export const storeSpotifyPlaylist = async (
-  playlist: SimplifiedPlaylistToReturn
+  playlist: SimplifiedPlaylistToReturn,
 ): Promise<void> => {
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlist.id}`;
   const cache = caches.default;
@@ -61,7 +66,7 @@ export const storeSpotifyPlaylist = async (
 };
 
 export const getStoredSpotifyPlaylist = async (
-  playlistId: string
+  playlistId: string,
 ): Promise<{ playlist: SimplifiedPlaylistToReturn; age: number } | null> => {
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlistId}`;
   const cache = caches.default;
@@ -85,7 +90,7 @@ export const getStoredSpotifyPlaylist = async (
 };
 
 export const storeSpotifyOwnership = async (
-  ownershipData: SpotifyOwnership
+  ownershipData: SpotifyOwnership,
 ): Promise<void> => {
   const cacheKey = `https://kiriko.tv/api/spotify-ownership`;
   const cache = caches.default;
@@ -128,9 +133,42 @@ export const getStoredSpotifyOwnership =
     return null;
   };
 
+export const storeSpotifySongAdder = async (
+  trackId: string,
+  displayName: string | null,
+): Promise<void> => {
+  const cacheKey = `https://kiriko.tv/api/overlay/spotify-now-playing/added-by/${encodeURIComponent(trackId)}`;
+  const cache = caches.default;
+
+  const response = new Response(JSON.stringify({ displayName }), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": `public, max-age=${SONG_ADDER_TTL_SECONDS}`,
+    },
+  });
+
+  await cache.put(cacheKey, response.clone());
+};
+
+export const getStoredSpotifySongAdder = async (
+  trackId: string,
+): Promise<SongAdderCacheEntry | null> => {
+  const cacheKey = `https://kiriko.tv/api/overlay/spotify-now-playing/added-by/${encodeURIComponent(trackId)}`;
+  const cache = caches.default;
+
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    const cachedData = (await cachedResponse.json()) as SongAdderCacheEntry;
+    return cachedData;
+  }
+
+  return null;
+};
+
 export const clearSpotifyPlaylistCache = async (
   playlistId: string,
-  env: Env
+  env: Env,
 ): Promise<void> => {
   const cacheKey = `https://kiriko.tv/api/spotify-playlist/${playlistId}`;
   const cache = caches.default;
@@ -151,13 +189,13 @@ export const clearSpotifyPlaylistCache = async (
         body: JSON.stringify({
           tags: ["spotify-playlist"],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       console.error(
         "Failed to purge playlist cache by tag:",
-        await response.text()
+        await response.text(),
       );
     } else {
       console.log(`Purged spotify-playlist cache globally via tag`);
@@ -187,7 +225,7 @@ export const clearSpotifyOwnershipCache = async (env: Env): Promise<void> => {
         body: JSON.stringify({
           tags: ["spotify-ownership"],
         }),
-      }
+      },
     );
 
     if (!response.ok) {

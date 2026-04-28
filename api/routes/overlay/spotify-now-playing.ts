@@ -4,6 +4,10 @@ import { getOverlaySpotifyCredentials } from "../../utils/overlay";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import type { Track } from "@spotify/web-api-ts-sdk";
 import { DB } from "../../db";
+import {
+  getStoredSpotifySongAdder,
+  storeSpotifySongAdder,
+} from "../../utils/cache";
 
 export const overlaySpotifyNowPlayingRoute = async (
   _request: IRequest,
@@ -43,8 +47,22 @@ export const overlaySpotifyNowPlayingRoute = async (
   const title = track.name;
 
   // Find who added the song if we can
-  const db = new DB(env);
-  const addedBy = await db.getSongAdder(track.id);
+  const cachedSongAdder = await getStoredSpotifySongAdder(track.uri);
+  let addedBy: { displayName: string } | null = null;
+
+  if (cachedSongAdder) {
+    if (cachedSongAdder.displayName) {
+      addedBy = { displayName: cachedSongAdder.displayName };
+    }
+  } else {
+    const db = new DB(env);
+    const songAdder = await db.getSongAdder(track.uri);
+
+    addedBy = songAdder ? { displayName: songAdder.displayName } : null;
+
+    await storeSpotifySongAdder(track.uri, addedBy?.displayName ?? null);
+  }
+
   if (addedBy) {
     return generateTextResponse(
       `${artists} - ${title} (added by ${addedBy.displayName})`,
