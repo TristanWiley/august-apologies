@@ -20,6 +20,23 @@ export const generateJSONResponse = (json: any, status: number): Response => {
   });
 };
 
+export const generateTextResponse = (
+  text: string,
+  status: number,
+): Response => {
+  // If the status is an error, log the error
+  if (status >= 400) {
+    console.error(text);
+  }
+
+  return new Response(text, {
+    headers: {
+      "content-type": "text/plain;charset=UTF-8",
+    },
+    status,
+  });
+};
+
 export const getValidBroadcasterAccessToken = async (env: Env) => {
   try {
     const kv = env.PERMISSIONS_KV;

@@ -1,3 +1,5 @@
+import type { AccessToken } from "@spotify/web-api-ts-sdk";
+
 export interface KVTwitchAuthPermissions {
   access_token: string;
   refresh_token: string;
@@ -14,3 +16,12 @@ export interface KVSpotifyCredentials {
   access_token_obtained_at?: number;
   access_token_expires_in?: number;
 }
+export interface KVCredentialsBase {
+  client_id: string;
+  client_secret: string;
+
+  access_token_obtained_at: number;
+  access_token_expires_in: number;
+}
+
+export type KVSpotifyAdminCredentials = KVCredentialsBase & AccessToken;

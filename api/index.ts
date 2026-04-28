@@ -20,6 +20,7 @@ import { spotifyOwnershipRoute } from "./routes/spotify-ownership";
 import { isAdminRoute } from "./routes/admin/is-admin";
 import { adminSpotifyCallbackRoute } from "./routes/admin/spotify-callback";
 import { adminSpotifyInfoRoute } from "./routes/admin/spotify-info";
+import { overlaySpotifyNowPlayingRoute } from "./routes/overlay/spotify-now-playing";
 
 const { preflight, corsify } = cors();
 
@@ -61,5 +62,8 @@ router.post("/spotify/playlist/remove", spotifyRemoveTrackRoute);
 router.get("/spotify/playlist/pending", spotifyPendingSongsRoute);
 router.post("/spotify/playlist/approve", spotifyApproveSongRoute);
 router.post("/spotify/playlist/disapprove", spotifyDisapproveSongRoute);
+
+// Overlay routes
+router.get("/overlay/now-playing", overlaySpotifyNowPlayingRoute);
 
 export default { ...router };

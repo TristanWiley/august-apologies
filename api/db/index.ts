@@ -108,7 +108,7 @@ export class DB {
 
   // Accounts helpers
   public async getAccountBySession(
-    sessionId: string
+    sessionId: string,
   ): Promise<AccountSelectType | null> {
     const record = await this.db
       .select()
@@ -124,7 +124,7 @@ export class DB {
     twitchId: string,
     flag: boolean,
     subscriptionType?: string,
-    isGiftedSub?: boolean
+    isGiftedSub?: boolean,
   ): Promise<AccountSelectType | null> {
     const response = await this.db
       .update(schema.accounts)
@@ -144,7 +144,7 @@ export class DB {
   }
 
   public async getAccountByTwitchID(
-    twitchId: string
+    twitchId: string,
   ): Promise<AccountSelectType | null> {
     const record = await this.db
       .select()
@@ -198,7 +198,7 @@ export class DB {
         username: r.username as string,
         subject: r.subject as string,
         excerpt: stripHtml(r.apology as string),
-      })
+      }),
     );
 
     return { items, total };
@@ -214,7 +214,7 @@ export class DB {
       .from(schema.playlistEntries)
       .innerJoin(
         schema.accounts,
-        eq(schema.playlistEntries.twitch_id, schema.accounts.twitch_id)
+        eq(schema.playlistEntries.twitch_id, schema.accounts.twitch_id),
       );
 
     const response: SpotifyOwnership = {};
@@ -232,7 +232,7 @@ export class DB {
 
   public async addPlaylistEntry(
     spotifyId: string,
-    twitchId: string
+    twitchId: string,
   ): Promise<void> {
     await this.db
       .insert(schema.playlistEntries)
@@ -245,7 +245,7 @@ export class DB {
 
   public async isTrackOwnedByUser(
     spotifyId: string,
-    twitchId: string
+    twitchId: string,
   ): Promise<boolean> {
     const row = await this.db
       .select()
@@ -271,8 +271,8 @@ export class DB {
       .where(
         or(
           eq(schema.accounts.twitch_id, twitchId),
-          eq(schema.accounts.display_name, twitchId)
-        )
+          eq(schema.accounts.display_name, twitchId),
+        ),
       )
       .returning();
 
@@ -286,8 +286,8 @@ export class DB {
       .where(
         or(
           eq(schema.accounts.twitch_id, twitchId),
-          eq(schema.accounts.display_name, twitchId)
-        )
+          eq(schema.accounts.display_name, twitchId),
+        ),
       )
       .returning();
 
@@ -355,7 +355,7 @@ export class DB {
   // Trusted user management
   public async setTrustedUser(
     twitchId: string,
-    isTrusted: boolean
+    isTrusted: boolean,
   ): Promise<AccountSelectType | null> {
     const response = await this.db
       .update(schema.accounts)
@@ -364,5 +364,34 @@ export class DB {
       .returning();
 
     return response.length > 0 ? response[0] : null;
+  }
+
+  // Who added song
+  public async getSongAdder(spotifyId: string): Promise<{
+    twitchId: string;
+    displayName: string;
+  } | null> {
+    const record = await this.db
+      .select({
+        twitchId: schema.playlistEntries.twitch_id,
+        displayName: schema.accounts.display_name,
+      })
+      .from(schema.playlistEntries)
+      .innerJoin(
+        schema.accounts,
+        eq(schema.playlistEntries.twitch_id, schema.accounts.twitch_id),
+      )
+      .where(eq(schema.playlistEntries.song_id, spotifyId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    if (!record) {
+      return null;
+    }
+
+    return {
+      twitchId: record.twitchId,
+      displayName: record.displayName,
+    };
   }
 }

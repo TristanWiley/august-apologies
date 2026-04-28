@@ -107,7 +107,7 @@ export const App = () => {
   const logoTint = accent[impactCount % accent.length];
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full">
       <div className="relative z-10 w-full h-full">{content}</div>
 
       <div
