@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:twitch": "vite --config extensions/twitch/vite.config.ts",
     "build": "vite build",
+    "build:twitch": "vite build --config extensions/twitch/vite.config.ts",
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "lint": "eslint ."
