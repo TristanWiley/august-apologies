@@ -19,4 +19,5 @@ export default defineConfig({
       },
     },
   },
+  server: { allowedHosts: ["extension.kiriko.tv"] },
 });

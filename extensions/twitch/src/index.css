@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Bubblegum Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+
+  color-scheme: light dark;
+  color: #8d86c9;
+  background-color: #202c39;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

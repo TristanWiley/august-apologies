@@ -1,20 +1,40 @@
 import React, { useEffect, useRef } from "react";
 import { useScript } from "../../hooks/useScript";
 
-// I'll figure this out later
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Twitch: any;
-  }
+type TwitchPlayerEventName = "online" | "offline";
+
+interface TwitchPlayerInstance {
+  addEventListener(eventName: TwitchPlayerEventName, handler: () => void): void;
+  setVolume(volume: number): void;
+  destroy(): void;
+}
+
+interface TwitchPlayerConstructor {
+  new (
+    elementId: string,
+    options: {
+      width: string | number;
+      height: string | number;
+      channel: string;
+      parent: string[];
+      autoplay?: boolean;
+    },
+  ): TwitchPlayerInstance;
+  ONLINE: TwitchPlayerEventName;
+  OFFLINE: TwitchPlayerEventName;
+}
+
+interface TwitchWindow extends Window {
+  Twitch?: {
+    Player: TwitchPlayerConstructor;
+  };
 }
 
 export const HomePage: React.FC = () => {
   // This app is specific to the streamer August
   const channel = "august";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const playerRef = useRef<any | null>(null);
+  const playerRef = useRef<TwitchPlayerInstance | null>(null);
   const [isLive, setIsLive] = React.useState<boolean | null>(null);
 
   // useScript must be called at top-level in component
@@ -23,6 +43,8 @@ export const HomePage: React.FC = () => {
   // Initialize player when script is ready
   useEffect(() => {
     if (scriptStatus !== "ready") return;
+
+    const twitchWindow = window as TwitchWindow;
 
     const options: {
       width: string | number;
@@ -39,16 +61,25 @@ export const HomePage: React.FC = () => {
     };
 
     try {
-      if (!window.Twitch || !window.Twitch.Player) {
+      if (!twitchWindow.Twitch || !twitchWindow.Twitch.Player) {
         console.error("Twitch Player is not available after script load");
       } else {
-        playerRef.current = new window.Twitch.Player("twitch-player", options);
-        playerRef.current.addEventListener(window.Twitch.Player.ONLINE, () => {
-          setIsLive(true);
-        });
-        playerRef.current.addEventListener(window.Twitch.Player.OFFLINE, () => {
-          setIsLive(false);
-        });
+        playerRef.current = new twitchWindow.Twitch.Player(
+          "twitch-player",
+          options,
+        );
+        playerRef.current.addEventListener(
+          twitchWindow.Twitch.Player.ONLINE,
+          () => {
+            setIsLive(true);
+          },
+        );
+        playerRef.current.addEventListener(
+          twitchWindow.Twitch.Player.OFFLINE,
+          () => {
+            setIsLive(false);
+          },
+        );
         if (
           playerRef.current &&
           typeof playerRef.current.setVolume === "function"
@@ -102,10 +133,10 @@ export const HomePage: React.FC = () => {
           ) : null}
         </h1>
 
-        <div className="w-[960px] h-[540px]">
+        <div className="w-full max-w-240 aspect-video">
           <div
             id="twitch-player"
-            className="w-full h-full  border rounded-md overflow-hidden"
+            className="w-full h-full border rounded-md overflow-hidden"
           />
         </div>
       </main>

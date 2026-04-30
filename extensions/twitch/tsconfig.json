@@ -1,4 +1,7 @@
 {
   "extends": "../../tsconfig.app.json",
-  "include": ["src", "../../src", "../../global.d.ts"]
+  "include": ["src", "../../src"],
+  "compilerOptions": {
+    "types": ["@types/twitch-ext"]
+  }
 }

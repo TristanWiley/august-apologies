@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
-import "../../../src/index.css";
 import { MusicPlayer } from "./components/player";
+
+import "./index.css";
 
 export const PanelExtension = () => {
   return (
