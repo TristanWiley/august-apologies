@@ -9,7 +9,7 @@ import {
   storeSpotifySongAdder,
 } from "../../utils/cache";
 
-export const overlaySpotifyNowPlayingRoute = async (
+export const commandSpotifyNowPlayingRoute = async (
   _request: IRequest,
   env: Env,
 ) => {
