@@ -21,6 +21,7 @@ import { isAdminRoute } from "./routes/admin/is-admin";
 import { adminSpotifyCallbackRoute } from "./routes/admin/spotify-callback";
 import { adminSpotifyInfoRoute } from "./routes/admin/spotify-info";
 import { commandSpotifyNowPlayingRoute } from "./routes/command/spotify-now-playing";
+import { extensionSpotifyNowPlayingRoute } from "./routes/extension/spotify-now-playing";
 
 const { preflight, corsify } = cors();
 
@@ -67,6 +68,6 @@ router.post("/spotify/playlist/disapprove", spotifyDisapproveSongRoute);
 router.get("/command/now-playing", commandSpotifyNowPlayingRoute);
 
 // Extension routes
-// router.get("/extension/spotify/now-playing", extensionSpotifyNowPlayingRoute);
+router.get("/extension/spotify/now-playing", extensionSpotifyNowPlayingRoute);
 
 export default { ...router };
