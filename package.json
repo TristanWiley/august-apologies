@@ -8,6 +8,8 @@
     "dev:twitch": "vite --config extensions/twitch/vite.config.ts",
     "build": "vite build",
     "build:twitch": "vite build --config extensions/twitch/vite.config.ts",
+    "openapi-fetch": "curl -X GET http://localhost:5173/api/openapi.json -o src/api/openapi.json",
+    "gen:client": "bun openapi-fetch && openapi-ts",
     "preview": "npm run build && vite preview",
     "deploy": "npm run build && wrangler deploy",
     "lint": "eslint ."
@@ -37,6 +39,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.33.0",
     "@eslint/js": "^9.39.4",
+    "@hey-api/openapi-ts": "0.97.0",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
