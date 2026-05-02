@@ -46,13 +46,13 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
 }
 
 export class SpotifyApproveSongEndpoint extends OpenAPIRoute {
-  static schema = {
+  schema = {
     summary: "Approve a pending Spotify song",
     description:
       "Approve a song that is currently pending and add it to the main playlist.",
     tags: ["Spotify"],
     request: {
-      body: SpotifyApproveSongEndpointRequestSchema,
+      body: contentJson(SpotifyApproveSongEndpointRequestSchema),
     },
     responses: {
       200: {

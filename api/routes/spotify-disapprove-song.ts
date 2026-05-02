@@ -14,13 +14,13 @@ const SpotifyDisapproveSongEndpointResponseSchema = z.object({
 });
 
 export class SpotifyDisapproveSongEndpoint extends OpenAPIRoute {
-  static schema = {
+  schema = {
     summary: "Disapprove a pending Spotify song",
     description:
       "Disapprove a song that is currently pending and remove it from the pending list.",
     tags: ["Spotify"],
     request: {
-      body: SpotifyDisapproveSongEndpointRequestSchema,
+      body: contentJson(SpotifyDisapproveSongEndpointRequestSchema),
     },
     responses: {
       200: {

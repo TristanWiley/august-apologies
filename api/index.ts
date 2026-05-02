@@ -27,12 +27,21 @@ import { GetAccountSessionEndpoint } from "./routes/get-account-session";
 const { preflight, corsify } = cors();
 
 const router = AutoRouter({
-  base: "/api",
   before: [preflight],
   finally: [corsify],
 });
 
-const openapi = fromIttyRouter(router);
+const openapi = fromIttyRouter(router, {
+  schema: {
+    info: {
+      title: "August API",
+      version: "1.0.0",
+    },
+  },
+  openapiVersion: "3.1",
+  docs_url: "/api/docs",
+  openapi_url: "/api/openapi.json",
+});
 
 openapi.get("/spotify/playlist", SpotifyPlaylistEndpoint);
 openapi.get("/spotify/ownership", SpotifyOwnershipEndpoint);
@@ -49,7 +58,7 @@ openapi.post("/admin/set-trusted-user", SetTrustedUserEndpoint);
 openapi.get("/admin/is-admin", IsAdminEndpoint);
 
 // EventSub callback endpoint
-openapi.post("/api/eventsub/callback", EventSubCallbackEndpoint);
+openapi.post("/eventsub/callback", EventSubCallbackEndpoint);
 
 openapi.get("/accounts/session", GetAccountSessionEndpoint);
 
@@ -72,4 +81,4 @@ openapi.get(
   ExtensionSpotifyNowPlayingEndpoint,
 );
 
-export default { ...router };
+export default { ...openapi };
