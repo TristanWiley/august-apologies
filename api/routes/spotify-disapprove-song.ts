@@ -30,7 +30,7 @@ export class SpotifyDisapproveSongEndpoint extends OpenAPIRoute {
     },
   };
 
-  async handle = async (request: IRequest, env: Env) {
+  async handle(request: IRequest, env: Env) {
     try {
       const body = await request.json();
       const { sessionId, spotifyId } = body as {
@@ -65,5 +65,5 @@ export class SpotifyDisapproveSongEndpoint extends OpenAPIRoute {
       console.error("spotifyDisapproveSongRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }
