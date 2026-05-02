@@ -34,7 +34,7 @@ export class AdminTwitchInfoEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (_request: IRequest, env: Env) => {
+  async handle(_request: IRequest, env: Env) {
     const kv = env.PERMISSIONS_KV;
 
     try {
@@ -61,5 +61,5 @@ export class AdminTwitchInfoEndpoint extends OpenAPIRoute {
         500,
       );
     }
-  };
+  }
 }

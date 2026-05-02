@@ -66,11 +66,7 @@ export class SpotifyAddTrackEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (
-    request: IRequest,
-    env: Env,
-    ctx: ExecutionContext,
-  ) => {
+  async handle(request: IRequest, env: Env, ctx: ExecutionContext) {
     try {
       const body = await request.json();
       const { sessionId, trackUri } = body as {
@@ -259,5 +255,5 @@ export class SpotifyAddTrackEndpoint extends OpenAPIRoute {
 
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }

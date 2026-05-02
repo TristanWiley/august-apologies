@@ -53,7 +53,7 @@ export class BanUserEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env) => {
+  async handle(request: IRequest, env: Env) {
     try {
       const requestData = await request.json();
       const { twitchId, action, sessionId } = requestData as {
@@ -120,5 +120,5 @@ export class BanUserEndpoint extends OpenAPIRoute {
       console.error("banUserRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }

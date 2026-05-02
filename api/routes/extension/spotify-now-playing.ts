@@ -50,7 +50,7 @@ export class ExtensionSpotifyNowPlayingEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (_request: IRequest, env: Env) => {
+  async handle(_request: IRequest, env: Env) {
     const credentials = await getOverlaySpotifyCredentials(env);
 
     if (!credentials) {
@@ -106,5 +106,5 @@ export class ExtensionSpotifyNowPlayingEndpoint extends OpenAPIRoute {
     }
 
     return generateJSONResponse({ track: { artists, title } }, 200);
-  };
+  }
 }

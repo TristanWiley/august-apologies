@@ -29,7 +29,7 @@ export class CommandSpotifyNowPlayingEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (_request: IRequest, env: Env) => {
+  async handle(_request: IRequest, env: Env) {
     const credentials = await getOverlaySpotifyCredentials(env);
 
     if (!credentials) {
@@ -88,5 +88,5 @@ export class CommandSpotifyNowPlayingEndpoint extends OpenAPIRoute {
     }
 
     return generateTextResponse(`${artists} - ${title}`, 200);
-  };
+  }
 }

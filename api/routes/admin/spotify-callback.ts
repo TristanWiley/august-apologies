@@ -48,7 +48,7 @@ export class AdminSpotifyCallbackEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+  async handle(request: IRequest, env: Env): Promise<Response> {
     const requestData = await request.json();
     const { code, redirectURL, sessionId } = requestData as {
       code?: string;
@@ -117,5 +117,5 @@ export class AdminSpotifyCallbackEndpoint extends OpenAPIRoute {
       { success: true, data: { expiresIn: response.expires_in } },
       200,
     );
-  };
+  }
 }

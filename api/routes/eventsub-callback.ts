@@ -44,7 +44,7 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env) => {
+  async handle(request: IRequest, env: Env) {
     const messageType = request.headers.get("Twitch-Eventsub-Message-Type");
     const messageId = request.headers.get("Twitch-Eventsub-Message-Id");
     const messageTimestamp = request.headers.get(
@@ -128,5 +128,5 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
     }
 
     return new Response("OK", { status: 200 });
-  };
+  }
 }

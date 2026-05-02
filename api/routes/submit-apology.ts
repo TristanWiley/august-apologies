@@ -31,7 +31,7 @@ export class SubmitApologyEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+  async handle(request: IRequest, env: Env): Promise<Response> {
     // Create a new database connection
     const connection = new DB(env);
 
@@ -84,5 +84,5 @@ export class SubmitApologyEndpoint extends OpenAPIRoute {
       },
       200,
     );
-  };
+  }
 }

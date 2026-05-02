@@ -34,17 +34,18 @@ export class IsAdminEndpoint extends OpenAPIRoute {
       "Checks if the user associated with the given session ID is an admin.",
     tags: ["Admin"],
     request: {
-      body: contentJson(IsAdminEndpointRequestSchema),
+      query: IsAdminEndpointRequestSchema,
     },
     response: {
       ...contentJson(IsAdminEndpointResponseSchema),
     },
   };
 
-  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+  async handle(_: IRequest, env: Env): Promise<Response> {
     try {
-      const url = new URL(request.url);
-      const sessionId = url.searchParams.get("sessionId");
+      const data = await this.getValidatedData<typeof this.schema>();
+
+      const sessionId = data.query.sessionId;
 
       if (!sessionId) {
         return generateJSONResponse({ message: "Missing sessionId" }, 400);
@@ -70,5 +71,5 @@ export class IsAdminEndpoint extends OpenAPIRoute {
         500,
       );
     }
-  };
+  }
 }

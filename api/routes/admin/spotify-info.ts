@@ -27,7 +27,7 @@ export class AdminSpotifyInfoEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (_request: IRequest, env: Env) => {
+  async handle(_request: IRequest, env: Env) {
     const kv = env.PERMISSIONS_KV;
 
     try {
@@ -44,5 +44,5 @@ export class AdminSpotifyInfoEndpoint extends OpenAPIRoute {
         500,
       );
     }
-  };
+  }
 }

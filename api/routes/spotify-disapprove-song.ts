@@ -30,7 +30,7 @@ export class SpotifyDisapproveSongEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env) => {
+  async handle = async (request: IRequest, env: Env) {
     try {
       const body = await request.json();
       const { sessionId, spotifyId } = body as {

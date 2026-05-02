@@ -57,7 +57,7 @@ export class SetTrustedUserEndpoint extends OpenAPIRoute {
       },
     },
   };
-  static handle = async (request: IRequest, env: Env) => {
+  async handle(request: IRequest, env: Env) {
     try {
       const body = await request.json();
       const { sessionId, targetTwitchId, isTrusted } = body as {
@@ -103,5 +103,5 @@ export class SetTrustedUserEndpoint extends OpenAPIRoute {
       console.error("setTrustedUserRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }

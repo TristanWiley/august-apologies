@@ -36,7 +36,7 @@ export class SpotifyPendingSongsEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env) => {
+  async handle = async (request: IRequest, env: Env) {
     try {
       const url = new URL(request.url);
       const sessionId = url.searchParams.get("sessionId");

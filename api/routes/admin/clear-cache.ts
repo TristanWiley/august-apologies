@@ -50,7 +50,7 @@ export class ClearCacheEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env) => {
+  async handle(request: IRequest, env: Env) {
     try {
       const requestData = await request.json();
       const { sessionId, cacheType } = requestData as {
@@ -108,5 +108,5 @@ export class ClearCacheEndpoint extends OpenAPIRoute {
       console.error("clearCacheRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }

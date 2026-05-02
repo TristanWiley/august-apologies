@@ -34,7 +34,7 @@ export class ListApologiesEndpoint extends OpenAPIRoute {
     },
   };
 
-  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+  async handle(request: IRequest, env: Env): Promise<Response> {
     try {
       const url = new URL(request.url);
       const page = Number(url.searchParams.get("page") || "1");
@@ -53,5 +53,5 @@ export class ListApologiesEndpoint extends OpenAPIRoute {
       console.error("listApologiesRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }
