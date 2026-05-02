@@ -9,7 +9,7 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
     .map(encodeURIComponent)
     .join("%20")}&client_id=${twitchClientID}&redirect_uri=${redirectURL}`;
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const connectTwitch = useCallback(
     async (code: string) => {
