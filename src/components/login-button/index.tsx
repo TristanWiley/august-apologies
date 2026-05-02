@@ -9,7 +9,7 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
     .map(encodeURIComponent)
     .join("%20")}&client_id=${twitchClientID}&redirect_uri=${redirectURL}`;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const connectTwitch = useCallback(
     async (code: string) => {
@@ -46,7 +46,7 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
         console.error("Error during Twitch authentication:", error);
       }
     },
-    [onAuth, redirectURL]
+    [onAuth, redirectURL],
   );
 
   // Event listener to check for twitch auth code
@@ -69,13 +69,13 @@ export const LoginButton: React.FC<{ onAuth: () => void }> = ({ onAuth }) => {
       href={twitchAuthURL}
       target="_blank"
       rel="noopener noreferrer"
-      className="bg-[#8956FB] text-white px-4 py-2 rounded-md hover:bg-[#6f40d8] transition cursor-pointer"
+      className="bg-[#8956FB] text-white px-4 py-2 rounded-md hover:bg-[#6f40d8] transition cursor-pointer inline-flex items-center"
     >
       {loading && (
         <img
           src="/augRiot.webp"
           alt="Loading"
-          className="w-8 h-8 ml-4 animate-spin"
+          className="w-8 h-8 mr-2 animate-spin"
         />
       )}
       {loading ? "Logging in..." : "Log in with Twitch"}
