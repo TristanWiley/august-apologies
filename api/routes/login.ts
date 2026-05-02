@@ -53,7 +53,7 @@ export class LoginEndpoint extends OpenAPIRoute {
     },
   };
 
-  static async handle(request: IRequest, env: Env): Promise<Response> {
+  async handle(request: IRequest, env: Env): Promise<Response> {
     // Create a new database connection
     const connection = new DB(env);
 

@@ -46,7 +46,7 @@ export class AdminTwitchCallbackEndpoint extends OpenAPIRoute {
     },
   };
 
-  static async handle(request: IRequest, env: Env): Promise<Response> {
+  async handle(request: IRequest, env: Env): Promise<Response> {
     const requestData = await request.json();
     const { code, redirectURL } = requestData as {
       code?: string;

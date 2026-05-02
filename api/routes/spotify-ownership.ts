@@ -33,7 +33,7 @@ export class SpotifyOwnershipEndpoint extends OpenAPIRoute {
     },
   };
 
-  static async handle(_request: IRequest, env: Env) {
+  async handle(_request: IRequest, env: Env) {
     try {
       // First check the cache
       const cachedOwnership = await getStoredSpotifyOwnership();
