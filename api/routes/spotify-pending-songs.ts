@@ -36,7 +36,7 @@ export class SpotifyPendingSongsEndpoint extends OpenAPIRoute {
     },
   };
 
-  async handle = async (request: IRequest, env: Env) {
+  async handle(request: IRequest, env: Env) {
     try {
       const url = new URL(request.url);
       const sessionId = url.searchParams.get("sessionId");
@@ -64,5 +64,5 @@ export class SpotifyPendingSongsEndpoint extends OpenAPIRoute {
       console.error("spotifyPendingSongsRoute error:", err);
       return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-  };
+  }
 }
