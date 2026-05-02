@@ -8,7 +8,4 @@ export default defineConfig({
   server: {
     cors: false,
   },
-  optimizeDeps: {
-    exclude: ["chanfana", "hono"],
-  },
 });

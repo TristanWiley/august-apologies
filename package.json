@@ -23,6 +23,7 @@
     "@tailwindcss/vite": "^4.2.4",
     "@types/twitch-ext": "^1.24.9",
     "chanfana": "^3.3.0",
+    "hono": "^4.12.2",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.44.7",
     "itty-router": "^5.0.23",
