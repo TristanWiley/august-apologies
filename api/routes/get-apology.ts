@@ -1,42 +1,69 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse } from "../utils/utils";
+import { contentJson, OpenAPIRoute } from "chanfana";
+import z from "zod";
 
-export const getApologyRoute = async (
-  request: IRequest,
-  env: Env
-): Promise<Response> => {
-  // Create a new database connection
-  const connection = new DB(env);
+const GetApologyEndpointRequestSchema = z.object({
+  id: z.uuid(),
+});
 
-  // Get the request body
-  const requestData = request.params;
+const GetApologyEndpointResponseSchema = z.object({
+  success: z.boolean(),
+  username: z.string(),
+  subject: z.string(),
+  apology: z.string(),
+});
 
-  console.log(requestData);
-
-  // Get the Twitch auth code from the request body
-  const { id } = requestData as {
-    id: string;
+export class GetApologyEndpoint extends OpenAPIRoute {
+  schema = {
+    summary: "Get a specific apology",
+    description: "Retrieve a single apology by its ID.",
+    tags: ["Apologies"],
+    request: {
+      params: GetApologyEndpointRequestSchema,
+    },
+    responses: {
+      200: {
+        description: "Success",
+        ...contentJson(GetApologyEndpointResponseSchema),
+      },
+    },
   };
 
-  // If there is no id, return a 400 response
-  if (!id) {
-    return generateJSONResponse({ message: "No id provided" }, 400);
-  }
-  // Submit apology
-  const apology = await connection.getApologyByID(id);
+  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+    // Create a new database connection
+    const connection = new DB(env);
 
-  if (!apology) {
-    return generateJSONResponse({ message: "Failed to get apology" }, 500);
-  }
+    // Get the request body
+    const requestData = request.params;
 
-  return generateJSONResponse(
-    {
-      success: true,
-      username: apology.username,
-      subject: apology.subject,
-      apology: apology.apology,
-    },
-    200
-  );
-};
+    console.log(requestData);
+
+    // Get the Twitch auth code from the request body
+    const { id } = requestData as {
+      id: string;
+    };
+
+    // If there is no id, return a 400 response
+    if (!id) {
+      return generateJSONResponse({ message: "No id provided" }, 400);
+    }
+    // Submit apology
+    const apology = await connection.getApologyByID(id);
+
+    if (!apology) {
+      return generateJSONResponse({ message: "Failed to get apology" }, 500);
+    }
+
+    return generateJSONResponse(
+      {
+        success: true,
+        username: apology.username,
+        subject: apology.subject,
+        apology: apology.apology,
+      },
+      200,
+    );
+  };
+}

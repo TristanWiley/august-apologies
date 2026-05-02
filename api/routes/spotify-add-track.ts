@@ -7,24 +7,23 @@ import {
   clearSpotifyOwnershipCache,
 } from "../utils/cache";
 import { createSpotifyApiClient } from "../utils/spotify-client";
+import z from "zod";
+import { contentJson, OpenAPIRoute } from "chanfana";
+import { parseSpotifyTrackId } from "../utils/spotify";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
-// Helper to convert Spotify URL to track URI
-function parseSpotifyTrackId(input: string): string | null {
-  // Handle spotify:track:xxx format
-  if (input.startsWith("spotify:track:")) {
-    return input;
-  }
+const SpotifyAddTrackEndpointRequestSchema = z.object({
+  sessionId: z.uuid(),
+  trackUri: z.string().min(1),
+});
 
-  // Handle https://open.spotify.com/track/xxx format
-  const match = input.match(/track\/([a-zA-Z0-9]+)/);
-  if (match) {
-    return `spotify:track:${match[1]}`;
-  }
-
-  return null;
-}
+const SpotifyAddTrackEndpointResponseSchema = z.object({
+  success: z.boolean(),
+  pending: z.boolean().optional(),
+  addedDirectly: z.boolean().optional(),
+  message: z.string().optional(),
+});
 
 // Helper to get valid Spotify client with token refresh
 async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
@@ -50,191 +49,215 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
   }
 }
 
-export const spotifyAddTrackRoute = async (
-  request: IRequest,
-  env: Env,
-  ctx: ExecutionContext,
-) => {
-  try {
-    const body = await request.json();
-    const { sessionId, trackUri } = body as {
-      sessionId?: string;
-      trackUri?: string;
-    };
+export class SpotifyAddTrackEndpoint extends OpenAPIRoute {
+  schema = {
+    summary: "Add a track to the Spotify playlist",
+    description:
+      "Add a track to the Spotify playlist. Requires authentication and an active subscription. Trusted users and the owner can add directly, while others require approval.",
+    tags: ["Spotify"],
+    request: {
+      body: contentJson(SpotifyAddTrackEndpointRequestSchema),
+    },
+    responses: {
+      200: {
+        description: "Track added successfully or pending approval",
+        ...contentJson(SpotifyAddTrackEndpointResponseSchema),
+      },
+    },
+  };
 
-    // Validate input
-    if (!sessionId || !trackUri) {
-      return generateJSONResponse({ message: "Missing params" }, 400);
-    }
-
-    // Parse track URI - accept both spotify:track: and URLs
-    const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
-    if (!parsedTrackUri) {
-      return generateJSONResponse({ message: "Invalid track URI or URL" }, 400);
-    }
-
-    // Verify user session and subscriber status
-    const db = new DB(env);
-    const account = await db.getAccountBySession(sessionId);
-    if (!account) {
-      return generateJSONResponse({ message: "Invalid session" }, 401);
-    }
-    if (!account.is_subscriber) {
-      return generateJSONResponse({ message: "Subscriber-only" }, 403);
-    }
-
-    // Check if user is trusted or owner - they can add directly without approval
-    const canAddDirectly = account.is_owner || account.is_trusted;
-
-    // Determine daily limit based on subscription tier
-    let dailyLimit = 5; // Default for tier 1
-    if (account.subscription_type === "2000") {
-      dailyLimit = 10; // Tier 2
-    } else if (account.subscription_type === "3000") {
-      dailyLimit = 20; // Tier 3
-    }
-
-    // Check daily song limit
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const limitKey = `song_limit:${account.twitch_id}:${today}`;
-    const currentCount = await env.CACHE_KV.get(limitKey);
-    const count = currentCount ? parseInt(currentCount, 10) : 0;
-
-    if (count >= dailyLimit) {
-      return generateJSONResponse(
-        {
-          message: `Daily limit reached. You can add up to ${dailyLimit} songs per day.`,
-        },
-        429,
-      );
-    }
-
-    // Get Spotify client
-    const spotifyClient = await getSpotifyClient(env);
-    if (!spotifyClient) {
-      return generateJSONResponse(
-        { message: "Failed to initialize Spotify client" },
-        500,
-      );
-    }
-
-    // Get track details first
-    const trackId = parsedTrackUri.replace("spotify:track:", "");
-    const trackDetails = (await spotifyClient.tracks.get(trackId)) as Track;
-
-    if (canAddDirectly) {
-      // Trusted users and owners can add directly without approval
-      // Add track to playlist
-      await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
-        parsedTrackUri,
-      ]);
-
-      // Store ownership data
-      await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
-
-      // Increment daily song count
-      await env.CACHE_KV.put(limitKey, String(count + 1), {
-        expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
-      });
-
-      // Clear caches immediately to force refresh
-      await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
-      await clearSpotifyOwnershipCache(env);
-
-      // Send Discord webhook notification with waitUntil
-      const artists = trackDetails.artists.map((a) => a.name).join(", ");
-      const discordMessage = {
-        embeds: [
-          {
-            title: trackDetails.name,
-            description: `Added by @${account.display_name}`,
-            fields: [
-              {
-                name: "Artist",
-                value: artists,
-                inline: false,
-              },
-              {
-                name: "Album",
-                value: trackDetails.album.name,
-                inline: false,
-              },
-            ],
-            url: trackDetails.external_urls.spotify,
-            color: 0x1db954, // Spotify green
-          },
-        ],
+  static handle = async (
+    request: IRequest,
+    env: Env,
+    ctx: ExecutionContext,
+  ) => {
+    try {
+      const body = await request.json();
+      const { sessionId, trackUri } = body as {
+        sessionId?: string;
+        trackUri?: string;
       };
 
-      ctx.waitUntil(
-        fetch(env.PLAYLIST_DISCORD_WEBHOOK, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      // Validate input
+      if (!sessionId || !trackUri) {
+        return generateJSONResponse({ message: "Missing params" }, 400);
+      }
+
+      // Parse track URI - accept both spotify:track: and URLs
+      const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
+      if (!parsedTrackUri) {
+        return generateJSONResponse(
+          { message: "Invalid track URI or URL" },
+          400,
+        );
+      }
+
+      // Verify user session and subscriber status
+      const db = new DB(env);
+      const account = await db.getAccountBySession(sessionId);
+      if (!account) {
+        return generateJSONResponse({ message: "Invalid session" }, 401);
+      }
+      if (!account.is_subscriber) {
+        return generateJSONResponse({ message: "Subscriber-only" }, 403);
+      }
+
+      // Check if user is trusted or owner - they can add directly without approval
+      const canAddDirectly = account.is_owner || account.is_trusted;
+
+      // Determine daily limit based on subscription tier
+      let dailyLimit = 5; // Default for tier 1
+      if (account.subscription_type === "2000") {
+        dailyLimit = 10; // Tier 2
+      } else if (account.subscription_type === "3000") {
+        dailyLimit = 20; // Tier 3
+      }
+
+      // Check daily song limit
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const limitKey = `song_limit:${account.twitch_id}:${today}`;
+      const currentCount = await env.CACHE_KV.get(limitKey);
+      const count = currentCount ? parseInt(currentCount, 10) : 0;
+
+      if (count >= dailyLimit) {
+        return generateJSONResponse(
+          {
+            message: `Daily limit reached. You can add up to ${dailyLimit} songs per day.`,
           },
-          body: JSON.stringify(discordMessage),
-        }).catch((webhookErr) => {
-          console.error("Failed to send Discord webhook:", webhookErr);
-        }),
-      );
-
-      console.log(
-        `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`,
-      );
-
-      return generateJSONResponse({ success: true, addedDirectly: true }, 200);
-    } else {
-      // Regular users need approval - add to pending songs
-      const artists = trackDetails.artists.map((a) => a.name).join(", ");
-
-      await db.addPendingSong({
-        spotifyId: parsedTrackUri,
-        trackName: trackDetails.name,
-        trackArtists: artists,
-        trackAlbum: trackDetails.album.name,
-        trackDurationMs: trackDetails.duration_ms,
-        externalUrl: trackDetails.external_urls.spotify,
-        addedByTwitchId: account.twitch_id,
-        addedByDisplayName: account.display_name,
-      });
-
-      // Increment daily song count
-      await env.CACHE_KV.put(limitKey, String(count + 1), {
-        expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
-      });
-
-      console.log(
-        `Track ${parsedTrackUri} queued for approval by ${account.display_name} (${account.twitch_id})`,
-      );
-
-      return generateJSONResponse(
-        {
-          success: true,
-          pending: true,
-          message: "Song submitted for approval",
-        },
-        200,
-      );
-    }
-  } catch (err) {
-    console.error("spotifyAddTrackRoute error:", err);
-
-    // Check for specific Spotify API errors
-    if (err instanceof Error) {
-      if (err.message.includes("duplicate")) {
-        return generateJSONResponse(
-          { message: "Track already in playlist" },
-          409,
+          429,
         );
       }
-      if (err.message.includes("not found")) {
+
+      // Get Spotify client
+      const spotifyClient = await getSpotifyClient(env);
+      if (!spotifyClient) {
         return generateJSONResponse(
-          { message: "Track or playlist not found" },
-          404,
+          { message: "Failed to initialize Spotify client" },
+          500,
         );
       }
-    }
 
-    return generateJSONResponse({ message: "Internal server error" }, 500);
-  }
-};
+      // Get track details first
+      const trackId = parsedTrackUri.replace("spotify:track:", "");
+      const trackDetails = (await spotifyClient.tracks.get(trackId)) as Track;
+
+      if (canAddDirectly) {
+        // Trusted users and owners can add directly without approval
+        // Add track to playlist
+        await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
+          parsedTrackUri,
+        ]);
+
+        // Store ownership data
+        await db.addPlaylistEntry(parsedTrackUri, account.twitch_id);
+
+        // Increment daily song count
+        await env.CACHE_KV.put(limitKey, String(count + 1), {
+          expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
+        });
+
+        // Clear caches immediately to force refresh
+        await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+        await clearSpotifyOwnershipCache(env);
+
+        // Send Discord webhook notification with waitUntil
+        const artists = trackDetails.artists.map((a) => a.name).join(", ");
+        const discordMessage = {
+          embeds: [
+            {
+              title: trackDetails.name,
+              description: `Added by @${account.display_name}`,
+              fields: [
+                {
+                  name: "Artist",
+                  value: artists,
+                  inline: false,
+                },
+                {
+                  name: "Album",
+                  value: trackDetails.album.name,
+                  inline: false,
+                },
+              ],
+              url: trackDetails.external_urls.spotify,
+              color: 0x1db954, // Spotify green
+            },
+          ],
+        };
+
+        ctx.waitUntil(
+          fetch(env.PLAYLIST_DISCORD_WEBHOOK, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(discordMessage),
+          }).catch((webhookErr) => {
+            console.error("Failed to send Discord webhook:", webhookErr);
+          }),
+        );
+
+        console.log(
+          `Track ${parsedTrackUri} added to playlist by ${account.display_name} (${account.twitch_id})`,
+        );
+
+        return generateJSONResponse(
+          { success: true, addedDirectly: true },
+          200,
+        );
+      } else {
+        // Regular users need approval - add to pending songs
+        const artists = trackDetails.artists.map((a) => a.name).join(", ");
+
+        await db.addPendingSong({
+          spotifyId: parsedTrackUri,
+          trackName: trackDetails.name,
+          trackArtists: artists,
+          trackAlbum: trackDetails.album.name,
+          trackDurationMs: trackDetails.duration_ms,
+          externalUrl: trackDetails.external_urls.spotify,
+          addedByTwitchId: account.twitch_id,
+          addedByDisplayName: account.display_name,
+        });
+
+        // Increment daily song count
+        await env.CACHE_KV.put(limitKey, String(count + 1), {
+          expirationTtl: 86400 * 2, // 48 hours to handle timezone edge cases
+        });
+
+        console.log(
+          `Track ${parsedTrackUri} queued for approval by ${account.display_name} (${account.twitch_id})`,
+        );
+
+        return generateJSONResponse(
+          {
+            success: true,
+            pending: true,
+            message: "Song submitted for approval",
+          },
+          200,
+        );
+      }
+    } catch (err) {
+      console.error("spotifyAddTrackRoute error:", err);
+
+      // Check for specific Spotify API errors
+      if (err instanceof Error) {
+        if (err.message.includes("duplicate")) {
+          return generateJSONResponse(
+            { message: "Track already in playlist" },
+            409,
+          );
+        }
+        if (err.message.includes("not found")) {
+          return generateJSONResponse(
+            { message: "Track or playlist not found" },
+            404,
+          );
+        }
+      }
+
+      return generateJSONResponse({ message: "Internal server error" }, 500);
+    }
+  };
+}

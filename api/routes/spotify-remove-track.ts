@@ -7,24 +7,21 @@ import {
   clearSpotifyOwnershipCache,
 } from "../utils/cache";
 import { createSpotifyApiClient } from "../utils/spotify-client";
+import { parseSpotifyTrackId } from "../utils/spotify";
+import z from "zod";
+import { contentJson, OpenAPIRoute } from "chanfana";
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 
-// Helper to convert Spotify URL to track URI
-function parseSpotifyTrackId(input: string): string | null {
-  // Handle spotify:track:xxx format
-  if (input.startsWith("spotify:track:")) {
-    return input;
-  }
+const SpotifyRemoveTrackEndpointEndpointSchema = z.object({
+  sessionId: z.uuid(),
+  trackUri: z.string().min(1),
+});
 
-  // Handle https://open.spotify.com/track/xxx format
-  const match = input.match(/track\/([a-zA-Z0-9]+)/);
-  if (match) {
-    return `spotify:track:${match[1]}`;
-  }
-
-  return null;
-}
+const SpotifyRemoveTrackEndpointResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+});
 
 // Helper to get valid Spotify client with token refresh
 async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
@@ -50,95 +47,119 @@ async function getSpotifyClient(env: Env): Promise<SpotifyApi | null> {
   }
 }
 
-export const spotifyRemoveTrackRoute = async (request: IRequest, env: Env) => {
-  try {
-    const body = await request.json();
-    const { sessionId, trackUri } = body as {
-      sessionId?: string;
-      trackUri?: string;
-    };
+export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
+  schema = {
+    summary: "Remove a track from the Spotify playlist",
+    description:
+      "Remove a track from the Spotify playlist. Requires authentication and an active subscription.",
+    tags: ["Spotify"],
+    request: {
+      body: contentJson(SpotifyRemoveTrackEndpointEndpointSchema),
+    },
+    responses: {
+      200: {
+        description: "Track removed successfully",
+        ...contentJson(SpotifyRemoveTrackEndpointResponseSchema),
+      },
+    },
+  };
 
-    // Validate input
-    if (!sessionId || !trackUri) {
-      return generateJSONResponse({ message: "Missing params" }, 400);
-    }
+  static handle = async (request: IRequest, env: Env) => {
+    try {
+      const body = await request.json();
+      const { sessionId, trackUri } = body as {
+        sessionId?: string;
+        trackUri?: string;
+      };
 
-    // Parse track URI - accept both spotify:track: and URLs
-    const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
-    if (!parsedTrackUri) {
-      return generateJSONResponse({ message: "Invalid track URI or URL" }, 400);
-    }
+      // Validate input
+      if (!sessionId || !trackUri) {
+        return generateJSONResponse({ message: "Missing params" }, 400);
+      }
 
-    // Extract track ID from URI to validate format
-    const trackIdMatch = parsedTrackUri.match(/spotify:track:([a-zA-Z0-9]+)/);
-    if (!trackIdMatch) {
-      return generateJSONResponse({ message: "Invalid track URI format" }, 400);
-    }
-
-    // Verify user session and subscriber status
-    const db = new DB(env);
-    const account = await db.getAccountBySession(sessionId);
-    if (!account) {
-      return generateJSONResponse({ message: "Invalid session" }, 401);
-    }
-    if (!account.is_subscriber) {
-      return generateJSONResponse({ message: "Subscriber-only" }, 403);
-    }
-
-    // If not owner, verify they own the track
-    if (!account.is_owner) {
-      // Verify the user owns this track
-      const ownsTrack = await db.isTrackOwnedByUser(
-        parsedTrackUri,
-        account.twitch_id,
-      );
-      if (!ownsTrack) {
+      // Parse track URI - accept both spotify:track: and URLs
+      const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
+      if (!parsedTrackUri) {
         return generateJSONResponse(
-          { message: "You can only remove tracks you added" },
-          403,
+          { message: "Invalid track URI or URL" },
+          400,
         );
       }
-    }
 
-    // Get Spotify client
-    const spotifyClient = await getSpotifyClient(env);
-    if (!spotifyClient) {
-      return generateJSONResponse(
-        { message: "Failed to initialize Spotify client" },
-        500,
-      );
-    }
-
-    // Remove track from playlist
-    await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, {
-      tracks: [{ uri: parsedTrackUri }],
-    });
-
-    // Remove from database
-    await db.removePlaylistEntry(parsedTrackUri);
-
-    // Clear caches to force refresh
-    await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
-    await clearSpotifyOwnershipCache(env);
-
-    console.log(
-      `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`,
-    );
-
-    return generateJSONResponse({ success: true }, 200);
-  } catch (err) {
-    console.error("spotifyRemoveTrackRoute error:", err);
-
-    // Check for specific Spotify API errors
-    if (err instanceof Error) {
-      if (err.message.includes("not found")) {
+      // Extract track ID from URI to validate format
+      const trackIdMatch = parsedTrackUri.match(/spotify:track:([a-zA-Z0-9]+)/);
+      if (!trackIdMatch) {
         return generateJSONResponse(
-          { message: "Track or playlist not found" },
-          404,
+          { message: "Invalid track URI format" },
+          400,
         );
       }
-    }
 
-    return generateJSONResponse({ message: "Internal server error" }, 500);
-  }
-};
+      // Verify user session and subscriber status
+      const db = new DB(env);
+      const account = await db.getAccountBySession(sessionId);
+      if (!account) {
+        return generateJSONResponse({ message: "Invalid session" }, 401);
+      }
+      if (!account.is_subscriber) {
+        return generateJSONResponse({ message: "Subscriber-only" }, 403);
+      }
+
+      // If not owner, verify they own the track
+      if (!account.is_owner) {
+        // Verify the user owns this track
+        const ownsTrack = await db.isTrackOwnedByUser(
+          parsedTrackUri,
+          account.twitch_id,
+        );
+        if (!ownsTrack) {
+          return generateJSONResponse(
+            { message: "You can only remove tracks you added" },
+            403,
+          );
+        }
+      }
+
+      // Get Spotify client
+      const spotifyClient = await getSpotifyClient(env);
+      if (!spotifyClient) {
+        return generateJSONResponse(
+          { message: "Failed to initialize Spotify client" },
+          500,
+        );
+      }
+
+      // Remove track from playlist
+      await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, {
+        tracks: [{ uri: parsedTrackUri }],
+      });
+
+      // Remove from database
+      await db.removePlaylistEntry(parsedTrackUri);
+
+      // Clear caches to force refresh
+      await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+      await clearSpotifyOwnershipCache(env);
+
+      console.log(
+        `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`,
+      );
+
+      return generateJSONResponse({ success: true }, 200);
+    } catch (err) {
+      console.error("spotifyRemoveTrackRoute error:", err);
+
+      // Check for specific Spotify API errors
+      if (err instanceof Error) {
+        if (err.message.includes("not found")) {
+          return generateJSONResponse(
+            { message: "Track or playlist not found" },
+            404,
+          );
+        }
+      }
+
+      return generateJSONResponse({ message: "Internal server error" }, 500);
+    }
+  };
+}

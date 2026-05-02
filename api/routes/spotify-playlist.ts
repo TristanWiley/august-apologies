@@ -11,21 +11,36 @@ import {
 } from "@spotify/web-api-ts-sdk";
 import { getStoredSpotifyPlaylist, storeSpotifyPlaylist } from "../utils/cache";
 import { createSpotifyApiClient } from "../utils/spotify-client";
+import { contentJson, OpenAPIRoute } from "chanfana";
+import z from "zod";
+import { ErrorResponseSchema } from "../types/endpoints";
 
-export interface SimplifiedPlaylistToReturn {
-  id: string;
-  name: string;
-  description: string | undefined;
-  images: Array<{ url: string; height: number | null; width: number | null }>;
-  tracks: Array<{
-    id: string;
-    name: string;
-    artists: string;
-    duration_ms: number;
-    external_url: string | null;
-    album: string | null;
-  }>;
-}
+const SpotifyPlaylistEndpointResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  images: z.array(
+    z.object({
+      url: z.string(),
+      height: z.number().nullable(),
+      width: z.number().nullable(),
+    }),
+  ),
+  tracks: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      artists: z.string(),
+      duration_ms: z.number(),
+      external_url: z.string().url().nullable(),
+      album: z.string().nullable(),
+    }),
+  ),
+});
+
+type SpotifyPlaylistEndpointResponse = z.infer<
+  typeof SpotifyPlaylistEndpointResponseSchema
+>;
 
 const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 const CACHE_REFRESH_THRESHOLD = 60;
@@ -58,7 +73,7 @@ function decodeHtmlEntities(input?: string): string | undefined {
 // Background function to fetch and cache playlist
 async function fetchAndCachePlaylist(
   env: Env,
-): Promise<SimplifiedPlaylistToReturn | null> {
+): Promise<SpotifyPlaylistEndpointResponse | null> {
   try {
     // Get credentials from KV
     const credentials = await getSpotifyCredentials(env);
@@ -94,7 +109,7 @@ async function fetchAndCachePlaylist(
       },
     );
 
-    const simplifiedPlaylist: SimplifiedPlaylistToReturn = {
+    const simplifiedPlaylist: SpotifyPlaylistEndpointResponse = {
       id: playlist.id,
       name: playlist.name,
       description: decodeHtmlEntities(playlist.description),
@@ -112,38 +127,56 @@ async function fetchAndCachePlaylist(
   }
 }
 
-export const spotifyPlaylistRoute = async (
-  _request: IRequest,
-  env: Env,
-  ctx: ExecutionContext,
-) => {
-  try {
-    const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);
+export class SpotifyPlaylistEndpoint extends OpenAPIRoute {
+  schema = {
+    summary: "Get the Spotify playlist with all tracks",
+    description:
+      "Returns the Spotify playlist with all tracks. Uses caching to improve performance, with background refresh when cache is stale.",
+    tags: ["Spotify"],
+    responses: {
+      200: {
+        description: "Successful response with playlist data",
+        ...contentJson(SpotifyPlaylistEndpointResponseSchema),
+      },
+      500: {
+        description: "Internal server error",
+        ...contentJson(ErrorResponseSchema),
+      },
+    },
+  };
 
-    // If we have cached data, return it immediately
-    if (cachedData) {
-      console.log(`Using cached Spotify playlist (age: ${cachedData.age}s)`);
+  static async handle(_request: IRequest, env: Env, ctx: ExecutionContext) {
+    try {
+      const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);
 
-      // If cache is getting stale, trigger background refresh
-      if (cachedData.age > CACHE_REFRESH_THRESHOLD) {
-        console.log("Cache is stale, refreshing in background");
-        ctx.waitUntil(fetchAndCachePlaylist(env));
+      // If we have cached data, return it immediately
+      if (cachedData) {
+        console.log(`Using cached Spotify playlist (age: ${cachedData.age}s)`);
+
+        // If cache is getting stale, trigger background refresh
+        if (cachedData.age > CACHE_REFRESH_THRESHOLD) {
+          console.log("Cache is stale, refreshing in background");
+          ctx.waitUntil(fetchAndCachePlaylist(env));
+        }
+
+        return generateJSONResponse(cachedData.playlist, 200);
       }
 
-      return generateJSONResponse(cachedData.playlist, 200);
+      // No cache - fetch synchronously (first time only)
+      console.log("No cache found, fetching from Spotify");
+      const freshPlaylist = await fetchAndCachePlaylist(env);
+
+      if (!freshPlaylist) {
+        return generateJSONResponse(
+          { message: "Failed to fetch playlist" },
+          500,
+        );
+      }
+
+      return generateJSONResponse(freshPlaylist, 200);
+    } catch (err) {
+      console.error("spotifyPlaylistRoute error:", err);
+      return generateJSONResponse({ message: "Internal server error" }, 500);
     }
-
-    // No cache - fetch synchronously (first time only)
-    console.log("No cache found, fetching from Spotify");
-    const freshPlaylist = await fetchAndCachePlaylist(env);
-
-    if (!freshPlaylist) {
-      return generateJSONResponse({ message: "Failed to fetch playlist" }, 500);
-    }
-
-    return generateJSONResponse(freshPlaylist, 200);
-  } catch (err) {
-    console.error("spotifyPlaylistRoute error:", err);
-    return generateJSONResponse({ message: "Internal server error" }, 500);
   }
-};
+}

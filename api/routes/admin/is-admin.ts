@@ -1,6 +1,17 @@
 import type { IRequest } from "itty-router";
 import { generateJSONResponse } from "../../utils/utils";
 import { DB } from "../../db";
+import z from "zod";
+import { contentJson, OpenAPIRoute } from "chanfana";
+
+const IsAdminEndpointRequestSchema = z.object({
+  sessionId: z.string(),
+});
+
+const IsAdminEndpointResponseSchema = z.object({
+  isAdmin: z.boolean(),
+  message: z.string(),
+});
 
 export const isAdmin = async (
   sessionId: string,
@@ -16,33 +27,48 @@ export const isAdmin = async (
   }
 };
 
-export const isAdminRoute = async (request: IRequest, env: Env) => {
-  try {
-    const url = new URL(request.url);
-    const sessionId = url.searchParams.get("sessionId");
+export class IsAdminEndpoint extends OpenAPIRoute {
+  schema = {
+    summary: "Check if a user is an admin",
+    description:
+      "Checks if the user associated with the given session ID is an admin.",
+    tags: ["Admin"],
+    request: {
+      body: contentJson(IsAdminEndpointRequestSchema),
+    },
+    response: {
+      ...contentJson(IsAdminEndpointResponseSchema),
+    },
+  };
 
-    if (!sessionId) {
-      return generateJSONResponse({ message: "Missing sessionId" }, 400);
-    }
+  static handle = async (request: IRequest, env: Env): Promise<Response> => {
+    try {
+      const url = new URL(request.url);
+      const sessionId = url.searchParams.get("sessionId");
 
-    const adminUser = await isAdmin(sessionId, env);
+      if (!sessionId) {
+        return generateJSONResponse({ message: "Missing sessionId" }, 400);
+      }
 
-    if (!adminUser) {
+      const adminUser = await isAdmin(sessionId, env);
+
+      if (!adminUser) {
+        return generateJSONResponse(
+          { message: "Unauthorized. Admin privileges required." },
+          403,
+        );
+      }
+
       return generateJSONResponse(
-        { message: "Unauthorized. Admin privileges required." },
-        403,
+        { isAdmin: true, message: "User is admin" },
+        200,
+      );
+    } catch (error) {
+      console.error("Error in isAdminRoute:", error);
+      return generateJSONResponse(
+        { isAdmin: false, message: "Internal server error" },
+        500,
       );
     }
-
-    return generateJSONResponse(
-      { isAdmin: true, message: "User is admin" },
-      200,
-    );
-  } catch (error) {
-    console.error("Error in isAdminRoute:", error);
-    return generateJSONResponse(
-      { isAdmin: false, message: "Internal server error" },
-      500,
-    );
-  }
-};
+  };
+}

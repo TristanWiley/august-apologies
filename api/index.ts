@@ -1,27 +1,28 @@
 import { AutoRouter, cors } from "itty-router";
-import { loginRoute } from "./routes/login";
-import { submitApologyRoute } from "./routes/submit-apology";
-import { getApologyRoute } from "./routes/get-apology";
-import { listApologiesRoute } from "./routes/list-apologies";
-import { spotifyPlaylistRoute } from "./routes/spotify-playlist";
-import { getAccountSessionRoute } from "./routes/get-account-session";
-import { spotifyAddTrackRoute } from "./routes/spotify-add-track";
-import { spotifyRemoveTrackRoute } from "./routes/spotify-remove-track";
-import { spotifyApproveSongRoute } from "./routes/spotify-approve-song";
-import { spotifyDisapproveSongRoute } from "./routes/spotify-disapprove-song";
-import { spotifyPendingSongsRoute } from "./routes/spotify-pending-songs";
-import { adminTwitchCallbackRoute } from "./routes/admin/twitch-callback";
-import { adminTwitchInfoRoute } from "./routes/admin/twitch-info";
-import { banUserRoute } from "./routes/admin/ban-user";
-import { clearCacheRoute } from "./routes/admin/clear-cache";
-import { setTrustedUserRoute } from "./routes/admin/set-trusted-user";
-import { eventsubCallbackRoute } from "./routes/eventsub-callback";
-import { spotifyOwnershipRoute } from "./routes/spotify-ownership";
-import { isAdminRoute } from "./routes/admin/is-admin";
-import { adminSpotifyCallbackRoute } from "./routes/admin/spotify-callback";
-import { adminSpotifyInfoRoute } from "./routes/admin/spotify-info";
-import { commandSpotifyNowPlayingRoute } from "./routes/command/spotify-now-playing";
-import { extensionSpotifyNowPlayingRoute } from "./routes/extension/spotify-now-playing";
+import { LoginEndpoint } from "./routes/login";
+import { SubmitApologyEndpoint } from "./routes/submit-apology";
+import { GetApologyEndpoint } from "./routes/get-apology";
+import { ListApologiesEndpoint } from "./routes/list-apologies";
+import { SpotifyAddTrackEndpoint } from "./routes/spotify-add-track";
+import { SpotifyRemoveTrackEndpoint } from "./routes/spotify-remove-track";
+import { SpotifyApproveSongEndpoint } from "./routes/spotify-approve-song";
+import { SpotifyDisapproveSongEndpoint } from "./routes/spotify-disapprove-song";
+import { SpotifyPendingSongsEndpoint } from "./routes/spotify-pending-songs";
+import { AdminTwitchCallbackEndpoint } from "./routes/admin/twitch-callback";
+import { AdminTwitchInfoEndpoint } from "./routes/admin/twitch-info";
+import { BanUserEndpoint } from "./routes/admin/ban-user";
+import { ClearCacheEndpoint } from "./routes/admin/clear-cache";
+import { SetTrustedUserEndpoint } from "./routes/admin/set-trusted-user";
+import { EventSubCallbackEndpoint } from "./routes/eventsub-callback";
+import { SpotifyOwnershipEndpoint } from "./routes/spotify-ownership";
+import { IsAdminEndpoint } from "./routes/admin/is-admin";
+import { AdminSpotifyCallbackEndpoint } from "./routes/admin/spotify-callback";
+import { AdminSpotifyInfoEndpoint } from "./routes/admin/spotify-info";
+import { CommandSpotifyNowPlayingEndpoint } from "./routes/command/spotify-now-playing";
+import { ExtensionSpotifyNowPlayingEndpoint } from "./routes/extension/spotify-now-playing";
+import { fromIttyRouter } from "chanfana";
+import { SpotifyPlaylistEndpoint } from "./routes/spotify-playlist";
+import { GetAccountSessionEndpoint } from "./routes/get-account-session";
 
 const { preflight, corsify } = cors();
 
@@ -31,43 +32,44 @@ const router = AutoRouter({
   finally: [corsify],
 });
 
-router.get("/session", () => {
-  return new Response("TODO: Return session");
-});
+const openapi = fromIttyRouter(router);
 
-router.get("/spotify/playlist", spotifyPlaylistRoute);
-router.get("/spotify/ownership", spotifyOwnershipRoute);
+openapi.get("/spotify/playlist", SpotifyPlaylistEndpoint);
+openapi.get("/spotify/ownership", SpotifyOwnershipEndpoint);
 
-router.post("/login", loginRoute);
+openapi.post("/login", LoginEndpoint);
 
-router.post("/admin/twitch/callback", adminTwitchCallbackRoute);
-router.get("/admin/twitch/info", adminTwitchInfoRoute);
-router.post("/admin/spotify/callback", adminSpotifyCallbackRoute);
-router.get("/admin/spotify/info", adminSpotifyInfoRoute);
-router.post("/admin/ban-user", banUserRoute);
-router.post("/admin/clear-cache", clearCacheRoute);
-router.post("/admin/set-trusted-user", setTrustedUserRoute);
-router.get("/admin/is-admin", isAdminRoute);
+openapi.post("/admin/twitch/callback", AdminTwitchCallbackEndpoint);
+openapi.get("/admin/twitch/info", AdminTwitchInfoEndpoint);
+openapi.post("/admin/spotify/callback", AdminSpotifyCallbackEndpoint);
+openapi.get("/admin/spotify/info", AdminSpotifyInfoEndpoint);
+openapi.post("/admin/ban-user", BanUserEndpoint);
+openapi.post("/admin/clear-cache", ClearCacheEndpoint);
+openapi.post("/admin/set-trusted-user", SetTrustedUserEndpoint);
+openapi.get("/admin/is-admin", IsAdminEndpoint);
 
 // EventSub callback endpoint
-router.post("/api/eventsub/callback", eventsubCallbackRoute);
+openapi.post("/api/eventsub/callback", EventSubCallbackEndpoint);
 
-router.get("/accounts/session", getAccountSessionRoute);
+openapi.get("/accounts/session", GetAccountSessionEndpoint);
 
-router.post("/apologies", submitApologyRoute);
-router.get("/apologies", listApologiesRoute);
-router.get("/apologies/:id", getApologyRoute);
+openapi.post("/apologies", SubmitApologyEndpoint);
+openapi.get("/apologies", ListApologiesEndpoint);
+openapi.get("/apologies/:id", GetApologyEndpoint);
 
-router.post("/spotify/playlist/add", spotifyAddTrackRoute);
-router.post("/spotify/playlist/remove", spotifyRemoveTrackRoute);
-router.get("/spotify/playlist/pending", spotifyPendingSongsRoute);
-router.post("/spotify/playlist/approve", spotifyApproveSongRoute);
-router.post("/spotify/playlist/disapprove", spotifyDisapproveSongRoute);
+openapi.post("/spotify/playlist/add", SpotifyAddTrackEndpoint);
+openapi.post("/spotify/playlist/remove", SpotifyRemoveTrackEndpoint);
+openapi.get("/spotify/playlist/pending", SpotifyPendingSongsEndpoint);
+openapi.post("/spotify/playlist/approve", SpotifyApproveSongEndpoint);
+openapi.post("/spotify/playlist/disapprove", SpotifyDisapproveSongEndpoint);
 
 // Command routes
-router.get("/command/now-playing", commandSpotifyNowPlayingRoute);
+openapi.get("/command/now-playing", CommandSpotifyNowPlayingEndpoint);
 
 // Extension routes
-router.get("/extension/spotify/now-playing", extensionSpotifyNowPlayingRoute);
+openapi.get(
+  "/extension/spotify/now-playing",
+  ExtensionSpotifyNowPlayingEndpoint,
+);
 
 export default { ...router };
