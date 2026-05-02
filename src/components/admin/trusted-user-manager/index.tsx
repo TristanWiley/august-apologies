@@ -80,11 +80,11 @@ export function TrustedUserManager() {
       <div className="flex gap-3 flex-wrap mb-4">
         <input
           type="text"
-          placeholder="Enter Twitch ID or username"
+          placeholder="Enter Twitch ID"
           value={twitchId}
           onChange={(e) => setTwitchId(e.target.value)}
           disabled={isLoading}
-          className="flex-1 min-w-[200px] px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm placeholder-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex-1 min-w-50 px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white text-sm placeholder-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
         />
         <div className="flex gap-2">
           <button

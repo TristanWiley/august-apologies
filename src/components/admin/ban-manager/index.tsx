@@ -72,7 +72,7 @@ export function BanManager() {
       <div className="flex gap-3 flex-wrap mb-4">
         <input
           type="text"
-          placeholder="Enter Twitch ID or username"
+          placeholder="Enter Twitch ID"
           value={twitchId}
           onChange={(e) => setTwitchId(e.target.value)}
           disabled={isLoading}
