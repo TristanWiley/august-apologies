@@ -25,6 +25,7 @@ import { SpotifyPlaylistEndpoint } from "./routes/spotify-playlist";
 import { GetAccountSessionEndpoint } from "./routes/get-account-session";
 
 const { preflight, corsify } = cors();
+const apiBase = "/api";
 
 const router = AutoRouter({
   before: [preflight],
@@ -39,46 +40,53 @@ const openapi = fromIttyRouter(router, {
     },
   },
   openapiVersion: "3.1",
-  docs_url: "/api/docs",
-  openapi_url: "/api/openapi.json",
+  docs_url: `${apiBase}/docs`,
+  openapi_url: `${apiBase}/openapi.json`,
 });
 
-openapi.get("/spotify/playlist", SpotifyPlaylistEndpoint);
-openapi.get("/spotify/ownership", SpotifyOwnershipEndpoint);
+openapi.get(`${apiBase}/spotify/playlist`, SpotifyPlaylistEndpoint);
+openapi.get(`${apiBase}/spotify/ownership`, SpotifyOwnershipEndpoint);
 
-openapi.post("/login", LoginEndpoint);
+openapi.post(`${apiBase}/login`, LoginEndpoint);
 
-openapi.post("/admin/twitch/callback", AdminTwitchCallbackEndpoint);
-openapi.get("/admin/twitch/info", AdminTwitchInfoEndpoint);
-openapi.post("/admin/spotify/callback", AdminSpotifyCallbackEndpoint);
-openapi.get("/admin/spotify/info", AdminSpotifyInfoEndpoint);
-openapi.post("/admin/ban-user", BanUserEndpoint);
-openapi.post("/admin/clear-cache", ClearCacheEndpoint);
-openapi.post("/admin/set-trusted-user", SetTrustedUserEndpoint);
-openapi.get("/admin/is-admin", IsAdminEndpoint);
+openapi.post(`${apiBase}/admin/twitch/callback`, AdminTwitchCallbackEndpoint);
+openapi.get(`${apiBase}/admin/twitch/info`, AdminTwitchInfoEndpoint);
+openapi.post(`${apiBase}/admin/spotify/callback`, AdminSpotifyCallbackEndpoint);
+openapi.get(`${apiBase}/admin/spotify/info`, AdminSpotifyInfoEndpoint);
+openapi.post(`${apiBase}/admin/ban-user`, BanUserEndpoint);
+openapi.post(`${apiBase}/admin/clear-cache`, ClearCacheEndpoint);
+openapi.post(`${apiBase}/admin/set-trusted-user`, SetTrustedUserEndpoint);
+openapi.get(`${apiBase}/admin/is-admin`, IsAdminEndpoint);
 
 // EventSub callback endpoint
-openapi.post("/eventsub/callback", EventSubCallbackEndpoint);
+openapi.post(`${apiBase}/eventsub/callback`, EventSubCallbackEndpoint);
 
-openapi.get("/accounts/session", GetAccountSessionEndpoint);
+openapi.get(`${apiBase}/accounts/session`, GetAccountSessionEndpoint);
 
-openapi.post("/apologies", SubmitApologyEndpoint);
-openapi.get("/apologies", ListApologiesEndpoint);
-openapi.get("/apologies/:id", GetApologyEndpoint);
+openapi.post(`${apiBase}/apologies`, SubmitApologyEndpoint);
+openapi.get(`${apiBase}/apologies`, ListApologiesEndpoint);
+openapi.get(`${apiBase}/apologies/:id`, GetApologyEndpoint);
 
-openapi.post("/spotify/playlist/add", SpotifyAddTrackEndpoint);
-openapi.post("/spotify/playlist/remove", SpotifyRemoveTrackEndpoint);
-openapi.get("/spotify/playlist/pending", SpotifyPendingSongsEndpoint);
-openapi.post("/spotify/playlist/approve", SpotifyApproveSongEndpoint);
-openapi.post("/spotify/playlist/disapprove", SpotifyDisapproveSongEndpoint);
+openapi.post(`${apiBase}/spotify/playlist/add`, SpotifyAddTrackEndpoint);
+openapi.post(`${apiBase}/spotify/playlist/remove`, SpotifyRemoveTrackEndpoint);
+openapi.get(`${apiBase}/spotify/playlist/pending`, SpotifyPendingSongsEndpoint);
+openapi.post(`${apiBase}/spotify/playlist/approve`, SpotifyApproveSongEndpoint);
+openapi.post(
+  `${apiBase}/spotify/playlist/disapprove`,
+  SpotifyDisapproveSongEndpoint,
+);
 
 // Command routes
-openapi.get("/command/now-playing", CommandSpotifyNowPlayingEndpoint);
+openapi.get(`${apiBase}/command/now-playing`, CommandSpotifyNowPlayingEndpoint);
 
 // Extension routes
 openapi.get(
-  "/extension/spotify/now-playing",
+  `${apiBase}/extension/spotify/now-playing`,
   ExtensionSpotifyNowPlayingEndpoint,
 );
 
-export default { ...openapi };
+const fetch = router.fetch;
+
+export { fetch };
+
+export default { fetch };

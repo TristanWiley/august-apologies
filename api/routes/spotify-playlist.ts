@@ -145,7 +145,7 @@ export class SpotifyPlaylistEndpoint extends OpenAPIRoute {
     },
   };
 
-  static async handle(_request: IRequest, env: Env, ctx: ExecutionContext) {
+  async handle(_request: IRequest, env: Env, ctx: ExecutionContext) {
     try {
       const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);
 
