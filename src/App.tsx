@@ -13,6 +13,7 @@ import { LoginPage } from "./components/login-page";
 import { AccountPage } from "./components/account-page";
 import { Nav } from "./components/nav";
 import { SpotifyCallbackPage } from "./components/spotify-callback";
+import { OverlayPage } from "./components/overlay";
 
 const AppFrame: React.FC<{
   children: React.ReactNode;
@@ -77,6 +78,7 @@ export const App = () => {
       showNav: false,
     },
     { path: "/view/:id", element: <ApologyView />, auth: false, showNav: true },
+    { path: "/overlay", element: <OverlayPage />, auth: true, showNav: false },
   ];
 
   const content = (
@@ -112,6 +114,7 @@ export const App = () => {
 
       <div
         ref={containerRef}
+        id="dvd-container"
         className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
       >
         <div ref={elementRef} className="absolute top-0 left-0">

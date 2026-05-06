@@ -8,7 +8,7 @@ export type GetSpotifyPlaylistEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/spotify/playlist';
+    url: '/api/spotify/playlist';
 };
 
 export type GetSpotifyPlaylistEndpointErrors = {
@@ -52,7 +52,7 @@ export type GetSpotifyOwnershipEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/spotify/ownership';
+    url: '/api/spotify/ownership';
 };
 
 export type GetSpotifyOwnershipEndpointErrors = {
@@ -92,7 +92,7 @@ export type PostLoginEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/login';
+    url: '/api/login';
 };
 
 export type PostLoginEndpointErrors = {
@@ -137,7 +137,7 @@ export type PostAdminTwitchCallbackEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/admin/twitch/callback';
+    url: '/api/admin/twitch/callback';
 };
 
 export type PostAdminTwitchCallbackEndpointErrors = {
@@ -182,7 +182,7 @@ export type GetAdminTwitchInfoEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/admin/twitch/info';
+    url: '/api/admin/twitch/info';
 };
 
 export type GetAdminTwitchInfoEndpointErrors = {
@@ -221,7 +221,7 @@ export type PostAdminSpotifyCallbackEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/admin/spotify/callback';
+    url: '/api/admin/spotify/callback';
 };
 
 export type PostAdminSpotifyCallbackEndpointErrors = {
@@ -265,7 +265,7 @@ export type GetAdminSpotifyInfoEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/admin/spotify/info';
+    url: '/api/admin/spotify/info';
 };
 
 export type GetAdminSpotifyInfoEndpointErrors = {
@@ -299,7 +299,7 @@ export type PostBanUserEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/admin/ban-user';
+    url: '/api/admin/ban-user';
 };
 
 export type PostBanUserEndpointErrors = {
@@ -355,7 +355,7 @@ export type PostClearCacheEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/admin/clear-cache';
+    url: '/api/admin/clear-cache';
 };
 
 export type PostClearCacheEndpointErrors = {
@@ -402,7 +402,7 @@ export type PostSetTrustedUserEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/admin/set-trusted-user';
+    url: '/api/admin/set-trusted-user';
 };
 
 export type PostSetTrustedUserEndpointErrors = {
@@ -458,12 +458,12 @@ export type PostSetTrustedUserEndpointResponses = {
 export type PostSetTrustedUserEndpointResponse = PostSetTrustedUserEndpointResponses[keyof PostSetTrustedUserEndpointResponses];
 
 export type GetIsAdminEndpointData = {
-    body?: {
+    body?: never;
+    path?: never;
+    query: {
         sessionId: string;
     };
-    path?: never;
-    query?: never;
-    url: '/admin/is-admin';
+    url: '/api/admin/is-admin';
 };
 
 export type GetIsAdminEndpointResponses = {
@@ -483,7 +483,7 @@ export type PostEventSubCallbackEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/eventsub/callback';
+    url: '/api/eventsub/callback';
 };
 
 export type PostEventSubCallbackEndpointErrors = {
@@ -518,7 +518,7 @@ export type GetGetAccountSessionEndpointData = {
     query: {
         sessionId: string;
     };
-    url: '/accounts/session';
+    url: '/api/accounts/session';
 };
 
 export type GetGetAccountSessionEndpointResponses = {
@@ -544,7 +544,7 @@ export type GetListApologiesEndpointData = {
         page?: string;
         pageSize?: string;
     };
-    url: '/apologies';
+    url: '/api/apologies';
 };
 
 export type GetListApologiesEndpointResponses = {
@@ -569,7 +569,7 @@ export type PostSubmitApologyEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/apologies';
+    url: '/api/apologies';
 };
 
 export type PostSubmitApologyEndpointResponses = {
@@ -585,7 +585,7 @@ export type GetGetApologyEndpointData = {
         id: string;
     };
     query?: never;
-    url: '/apologies/{id}';
+    url: '/api/apologies/{id}';
 };
 
 export type GetGetApologyEndpointResponses = {
@@ -609,7 +609,7 @@ export type PostSpotifyAddTrackEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/spotify/playlist/add';
+    url: '/api/spotify/playlist/add';
 };
 
 export type PostSpotifyAddTrackEndpointResponses = {
@@ -633,7 +633,7 @@ export type PostSpotifyRemoveTrackEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/spotify/playlist/remove';
+    url: '/api/spotify/playlist/remove';
 };
 
 export type PostSpotifyRemoveTrackEndpointResponses = {
@@ -654,7 +654,7 @@ export type GetSpotifyPendingSongsEndpointData = {
     query: {
         sessionId: string;
     };
-    url: '/spotify/playlist/pending';
+    url: '/api/spotify/playlist/pending';
 };
 
 export type GetSpotifyPendingSongsEndpointResponses = {
@@ -681,7 +681,7 @@ export type PostSpotifyApproveSongEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/spotify/playlist/approve';
+    url: '/api/spotify/playlist/approve';
 };
 
 export type PostSpotifyApproveSongEndpointResponses = {
@@ -702,7 +702,7 @@ export type PostSpotifyDisapproveSongEndpointData = {
     };
     path?: never;
     query?: never;
-    url: '/spotify/playlist/disapprove';
+    url: '/api/spotify/playlist/disapprove';
 };
 
 export type PostSpotifyDisapproveSongEndpointResponses = {
@@ -720,7 +720,7 @@ export type GetCommandSpotifyNowPlayingEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/command/now-playing';
+    url: '/api/command/now-playing';
 };
 
 export type GetCommandSpotifyNowPlayingEndpointResponses = {
@@ -736,7 +736,7 @@ export type GetExtensionSpotifyNowPlayingEndpointData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/extension/spotify/now-playing';
+    url: '/api/extension/spotify/now-playing';
 };
 
 export type GetExtensionSpotifyNowPlayingEndpointResponses = {
@@ -762,3 +762,39 @@ export type GetExtensionSpotifyNowPlayingEndpointResponses = {
 };
 
 export type GetExtensionSpotifyNowPlayingEndpointResponse = GetExtensionSpotifyNowPlayingEndpointResponses[keyof GetExtensionSpotifyNowPlayingEndpointResponses];
+
+export type GetOverlaySpotifyNowPlayingEndpointData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/overlay/spotify/now-playing';
+};
+
+export type GetOverlaySpotifyNowPlayingEndpointResponses = {
+    /**
+     * The currently playing Spotify track
+     */
+    200: {
+        track: {
+            artists: Array<{
+                external_urls: {
+                    spotify: string;
+                };
+                href: string;
+                id: string;
+                name: string;
+                type: string;
+                uri: string;
+            }>;
+            title: string;
+            addedBy?: string;
+            image: {
+                url: string;
+                width: number | null;
+                height: number | null;
+            } | null;
+        } | null;
+    };
+};
+
+export type GetOverlaySpotifyNowPlayingEndpointResponse = GetOverlaySpotifyNowPlayingEndpointResponses[keyof GetOverlaySpotifyNowPlayingEndpointResponses];

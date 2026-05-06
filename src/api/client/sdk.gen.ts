@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAdminSpotifyInfoEndpointData, GetAdminSpotifyInfoEndpointErrors, GetAdminSpotifyInfoEndpointResponses, GetAdminTwitchInfoEndpointData, GetAdminTwitchInfoEndpointErrors, GetAdminTwitchInfoEndpointResponses, GetCommandSpotifyNowPlayingEndpointData, GetCommandSpotifyNowPlayingEndpointResponses, GetExtensionSpotifyNowPlayingEndpointData, GetExtensionSpotifyNowPlayingEndpointResponses, GetGetAccountSessionEndpointData, GetGetAccountSessionEndpointResponses, GetGetApologyEndpointData, GetGetApologyEndpointResponses, GetIsAdminEndpointData, GetIsAdminEndpointResponses, GetListApologiesEndpointData, GetListApologiesEndpointResponses, GetSpotifyOwnershipEndpointData, GetSpotifyOwnershipEndpointErrors, GetSpotifyOwnershipEndpointResponses, GetSpotifyPendingSongsEndpointData, GetSpotifyPendingSongsEndpointResponses, GetSpotifyPlaylistEndpointData, GetSpotifyPlaylistEndpointErrors, GetSpotifyPlaylistEndpointResponses, PostAdminSpotifyCallbackEndpointData, PostAdminSpotifyCallbackEndpointErrors, PostAdminSpotifyCallbackEndpointResponses, PostAdminTwitchCallbackEndpointData, PostAdminTwitchCallbackEndpointErrors, PostAdminTwitchCallbackEndpointResponses, PostBanUserEndpointData, PostBanUserEndpointErrors, PostBanUserEndpointResponses, PostClearCacheEndpointData, PostClearCacheEndpointErrors, PostClearCacheEndpointResponses, PostEventSubCallbackEndpointData, PostEventSubCallbackEndpointErrors, PostEventSubCallbackEndpointResponses, PostLoginEndpointData, PostLoginEndpointErrors, PostLoginEndpointResponses, PostSetTrustedUserEndpointData, PostSetTrustedUserEndpointErrors, PostSetTrustedUserEndpointResponses, PostSpotifyAddTrackEndpointData, PostSpotifyAddTrackEndpointResponses, PostSpotifyApproveSongEndpointData, PostSpotifyApproveSongEndpointResponses, PostSpotifyDisapproveSongEndpointData, PostSpotifyDisapproveSongEndpointResponses, PostSpotifyRemoveTrackEndpointData, PostSpotifyRemoveTrackEndpointResponses, PostSubmitApologyEndpointData, PostSubmitApologyEndpointResponses } from './types.gen';
+import type { GetAdminSpotifyInfoEndpointData, GetAdminSpotifyInfoEndpointErrors, GetAdminSpotifyInfoEndpointResponses, GetAdminTwitchInfoEndpointData, GetAdminTwitchInfoEndpointErrors, GetAdminTwitchInfoEndpointResponses, GetCommandSpotifyNowPlayingEndpointData, GetCommandSpotifyNowPlayingEndpointResponses, GetExtensionSpotifyNowPlayingEndpointData, GetExtensionSpotifyNowPlayingEndpointResponses, GetGetAccountSessionEndpointData, GetGetAccountSessionEndpointResponses, GetGetApologyEndpointData, GetGetApologyEndpointResponses, GetIsAdminEndpointData, GetIsAdminEndpointResponses, GetListApologiesEndpointData, GetListApologiesEndpointResponses, GetOverlaySpotifyNowPlayingEndpointData, GetOverlaySpotifyNowPlayingEndpointResponses, GetSpotifyOwnershipEndpointData, GetSpotifyOwnershipEndpointErrors, GetSpotifyOwnershipEndpointResponses, GetSpotifyPendingSongsEndpointData, GetSpotifyPendingSongsEndpointResponses, GetSpotifyPlaylistEndpointData, GetSpotifyPlaylistEndpointErrors, GetSpotifyPlaylistEndpointResponses, PostAdminSpotifyCallbackEndpointData, PostAdminSpotifyCallbackEndpointErrors, PostAdminSpotifyCallbackEndpointResponses, PostAdminTwitchCallbackEndpointData, PostAdminTwitchCallbackEndpointErrors, PostAdminTwitchCallbackEndpointResponses, PostBanUserEndpointData, PostBanUserEndpointErrors, PostBanUserEndpointResponses, PostClearCacheEndpointData, PostClearCacheEndpointErrors, PostClearCacheEndpointResponses, PostEventSubCallbackEndpointData, PostEventSubCallbackEndpointErrors, PostEventSubCallbackEndpointResponses, PostLoginEndpointData, PostLoginEndpointErrors, PostLoginEndpointResponses, PostSetTrustedUserEndpointData, PostSetTrustedUserEndpointErrors, PostSetTrustedUserEndpointResponses, PostSpotifyAddTrackEndpointData, PostSpotifyAddTrackEndpointResponses, PostSpotifyApproveSongEndpointData, PostSpotifyApproveSongEndpointResponses, PostSpotifyDisapproveSongEndpointData, PostSpotifyDisapproveSongEndpointResponses, PostSpotifyRemoveTrackEndpointData, PostSpotifyRemoveTrackEndpointResponses, PostSubmitApologyEndpointData, PostSubmitApologyEndpointResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -23,14 +23,14 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  *
  * Returns the Spotify playlist with all tracks. Uses caching to improve performance, with background refresh when cache is stale.
  */
-export const getSpotifyPlaylistEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetSpotifyPlaylistEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetSpotifyPlaylistEndpointResponses, GetSpotifyPlaylistEndpointErrors, ThrowOnError>({ url: '/spotify/playlist', ...options });
+export const getSpotifyPlaylistEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetSpotifyPlaylistEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetSpotifyPlaylistEndpointResponses, GetSpotifyPlaylistEndpointErrors, ThrowOnError>({ url: '/api/spotify/playlist', ...options });
 
 /**
  * Get Spotify ownership information
  *
  * Returns the ownership information for all Spotify playlists.
  */
-export const getSpotifyOwnershipEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetSpotifyOwnershipEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetSpotifyOwnershipEndpointResponses, GetSpotifyOwnershipEndpointErrors, ThrowOnError>({ url: '/spotify/ownership', ...options });
+export const getSpotifyOwnershipEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetSpotifyOwnershipEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetSpotifyOwnershipEndpointResponses, GetSpotifyOwnershipEndpointErrors, ThrowOnError>({ url: '/api/spotify/ownership', ...options });
 
 /**
  * Login to the application
@@ -38,7 +38,7 @@ export const getSpotifyOwnershipEndpoint = <ThrowOnError extends boolean = false
  * Logs in a Twitch user and returns a session token.
  */
 export const postLoginEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostLoginEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostLoginEndpointResponses, PostLoginEndpointErrors, ThrowOnError>({
-    url: '/login',
+    url: '/api/login',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export const postLoginEndpoint = <ThrowOnError extends boolean = false>(options?
  * Handle Twitch OAuth callback for admin authentication
  */
 export const postAdminTwitchCallbackEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostAdminTwitchCallbackEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostAdminTwitchCallbackEndpointResponses, PostAdminTwitchCallbackEndpointErrors, ThrowOnError>({
-    url: '/admin/twitch/callback',
+    url: '/api/admin/twitch/callback',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ export const postAdminTwitchCallbackEndpoint = <ThrowOnError extends boolean = f
  *
  * Returns the Twitch admin authentication information if available. This is used to verify if the admin is authenticated and to display relevant info in the admin dashboard.
  */
-export const getAdminTwitchInfoEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTwitchInfoEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetAdminTwitchInfoEndpointResponses, GetAdminTwitchInfoEndpointErrors, ThrowOnError>({ url: '/admin/twitch/info', ...options });
+export const getAdminTwitchInfoEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTwitchInfoEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetAdminTwitchInfoEndpointResponses, GetAdminTwitchInfoEndpointErrors, ThrowOnError>({ url: '/api/admin/twitch/info', ...options });
 
 /**
  * Spotify OAuth callback for admin authentication
@@ -71,7 +71,7 @@ export const getAdminTwitchInfoEndpoint = <ThrowOnError extends boolean = false>
  * Handles the Spotify OAuth callback and stores the access token for admin use.
  */
 export const postAdminSpotifyCallbackEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostAdminSpotifyCallbackEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostAdminSpotifyCallbackEndpointResponses, PostAdminSpotifyCallbackEndpointErrors, ThrowOnError>({
-    url: '/admin/spotify/callback',
+    url: '/api/admin/spotify/callback',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const postAdminSpotifyCallbackEndpoint = <ThrowOnError extends boolean = 
  *
  * Checks if the Spotify admin authentication token is stored and valid.
  */
-export const getAdminSpotifyInfoEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSpotifyInfoEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetAdminSpotifyInfoEndpointResponses, GetAdminSpotifyInfoEndpointErrors, ThrowOnError>({ url: '/admin/spotify/info', ...options });
+export const getAdminSpotifyInfoEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSpotifyInfoEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetAdminSpotifyInfoEndpointResponses, GetAdminSpotifyInfoEndpointErrors, ThrowOnError>({ url: '/api/admin/spotify/info', ...options });
 
 /**
  * Ban or unban a user
@@ -92,7 +92,7 @@ export const getAdminSpotifyInfoEndpoint = <ThrowOnError extends boolean = false
  * Bans or unbans a user based on their Twitch ID.
  */
 export const postBanUserEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostBanUserEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostBanUserEndpointResponses, PostBanUserEndpointErrors, ThrowOnError>({
-    url: '/admin/ban-user',
+    url: '/api/admin/ban-user',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export const postBanUserEndpoint = <ThrowOnError extends boolean = false>(option
  * Clears the cache for Spotify playlist or ownership data.
  */
 export const postClearCacheEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostClearCacheEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostClearCacheEndpointResponses, PostClearCacheEndpointErrors, ThrowOnError>({
-    url: '/admin/clear-cache',
+    url: '/api/admin/clear-cache',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export const postClearCacheEndpoint = <ThrowOnError extends boolean = false>(opt
  * Allows the owner to set or unset a trusted user by their Twitch ID.
  */
 export const postSetTrustedUserEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSetTrustedUserEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSetTrustedUserEndpointResponses, PostSetTrustedUserEndpointErrors, ThrowOnError>({
-    url: '/admin/set-trusted-user',
+    url: '/api/admin/set-trusted-user',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -133,35 +133,28 @@ export const postSetTrustedUserEndpoint = <ThrowOnError extends boolean = false>
  *
  * Checks if the user associated with the given session ID is an admin.
  */
-export const getIsAdminEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetIsAdminEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetIsAdminEndpointResponses, unknown, ThrowOnError>({
-    url: '/admin/is-admin',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers
-    }
-});
+export const getIsAdminEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetIsAdminEndpointData, ThrowOnError>) => (options.client ?? client).get<GetIsAdminEndpointResponses, unknown, ThrowOnError>({ url: '/api/admin/is-admin', ...options });
 
 /**
  * Twitch EventSub callback endpoint
  *
  * Endpoint to receive Twitch EventSub notifications and handle verification challenges.
  */
-export const postEventSubCallbackEndpoint = <ThrowOnError extends boolean = false>(options: Options<PostEventSubCallbackEndpointData, ThrowOnError>) => (options.client ?? client).post<PostEventSubCallbackEndpointResponses, PostEventSubCallbackEndpointErrors, ThrowOnError>({ url: '/eventsub/callback', ...options });
+export const postEventSubCallbackEndpoint = <ThrowOnError extends boolean = false>(options: Options<PostEventSubCallbackEndpointData, ThrowOnError>) => (options.client ?? client).post<PostEventSubCallbackEndpointResponses, PostEventSubCallbackEndpointErrors, ThrowOnError>({ url: '/api/eventsub/callback', ...options });
 
 /**
  * Get account session
  *
  * Retrieve the account associated with a given session ID.
  */
-export const getGetAccountSessionEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetGetAccountSessionEndpointData, ThrowOnError>) => (options.client ?? client).get<GetGetAccountSessionEndpointResponses, unknown, ThrowOnError>({ url: '/accounts/session', ...options });
+export const getGetAccountSessionEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetGetAccountSessionEndpointData, ThrowOnError>) => (options.client ?? client).get<GetGetAccountSessionEndpointResponses, unknown, ThrowOnError>({ url: '/api/accounts/session', ...options });
 
 /**
  * List public apologies
  *
  * Retrieve a list of public apologies with pagination.
  */
-export const getListApologiesEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetListApologiesEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetListApologiesEndpointResponses, unknown, ThrowOnError>({ url: '/apologies', ...options });
+export const getListApologiesEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetListApologiesEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetListApologiesEndpointResponses, unknown, ThrowOnError>({ url: '/api/apologies', ...options });
 
 /**
  * Submit an apology
@@ -169,7 +162,7 @@ export const getListApologiesEndpoint = <ThrowOnError extends boolean = false>(o
  * Submit an apology with a subject. Requires authentication.
  */
 export const postSubmitApologyEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSubmitApologyEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSubmitApologyEndpointResponses, unknown, ThrowOnError>({
-    url: '/apologies',
+    url: '/api/apologies',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -182,7 +175,7 @@ export const postSubmitApologyEndpoint = <ThrowOnError extends boolean = false>(
  *
  * Retrieve a single apology by its ID.
  */
-export const getGetApologyEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetGetApologyEndpointData, ThrowOnError>) => (options.client ?? client).get<GetGetApologyEndpointResponses, unknown, ThrowOnError>({ url: '/apologies/{id}', ...options });
+export const getGetApologyEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetGetApologyEndpointData, ThrowOnError>) => (options.client ?? client).get<GetGetApologyEndpointResponses, unknown, ThrowOnError>({ url: '/api/apologies/{id}', ...options });
 
 /**
  * Add a track to the Spotify playlist
@@ -190,7 +183,7 @@ export const getGetApologyEndpoint = <ThrowOnError extends boolean = false>(opti
  * Add a track to the Spotify playlist. Requires authentication and an active subscription. Trusted users and the owner can add directly, while others require approval.
  */
 export const postSpotifyAddTrackEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSpotifyAddTrackEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSpotifyAddTrackEndpointResponses, unknown, ThrowOnError>({
-    url: '/spotify/playlist/add',
+    url: '/api/spotify/playlist/add',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -204,7 +197,7 @@ export const postSpotifyAddTrackEndpoint = <ThrowOnError extends boolean = false
  * Remove a track from the Spotify playlist. Requires authentication and an active subscription.
  */
 export const postSpotifyRemoveTrackEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSpotifyRemoveTrackEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSpotifyRemoveTrackEndpointResponses, unknown, ThrowOnError>({
-    url: '/spotify/playlist/remove',
+    url: '/api/spotify/playlist/remove',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -217,7 +210,7 @@ export const postSpotifyRemoveTrackEndpoint = <ThrowOnError extends boolean = fa
  *
  * Get a list of all pending songs in the system.
  */
-export const getSpotifyPendingSongsEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetSpotifyPendingSongsEndpointData, ThrowOnError>) => (options.client ?? client).get<GetSpotifyPendingSongsEndpointResponses, unknown, ThrowOnError>({ url: '/spotify/playlist/pending', ...options });
+export const getSpotifyPendingSongsEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetSpotifyPendingSongsEndpointData, ThrowOnError>) => (options.client ?? client).get<GetSpotifyPendingSongsEndpointResponses, unknown, ThrowOnError>({ url: '/api/spotify/playlist/pending', ...options });
 
 /**
  * Approve a pending Spotify song
@@ -225,7 +218,7 @@ export const getSpotifyPendingSongsEndpoint = <ThrowOnError extends boolean = fa
  * Approve a song that is currently pending and add it to the main playlist.
  */
 export const postSpotifyApproveSongEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSpotifyApproveSongEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSpotifyApproveSongEndpointResponses, unknown, ThrowOnError>({
-    url: '/spotify/playlist/approve',
+    url: '/api/spotify/playlist/approve',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -239,7 +232,7 @@ export const postSpotifyApproveSongEndpoint = <ThrowOnError extends boolean = fa
  * Disapprove a song that is currently pending and remove it from the pending list.
  */
 export const postSpotifyDisapproveSongEndpoint = <ThrowOnError extends boolean = false>(options?: Options<PostSpotifyDisapproveSongEndpointData, ThrowOnError>) => (options?.client ?? client).post<PostSpotifyDisapproveSongEndpointResponses, unknown, ThrowOnError>({
-    url: '/spotify/playlist/disapprove',
+    url: '/api/spotify/playlist/disapprove',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -252,11 +245,18 @@ export const postSpotifyDisapproveSongEndpoint = <ThrowOnError extends boolean =
  *
  * Retrieve the currently playing Spotify track, including who added it if available.
  */
-export const getCommandSpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetCommandSpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetCommandSpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/command/now-playing', ...options });
+export const getCommandSpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetCommandSpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetCommandSpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/api/command/now-playing', ...options });
 
 /**
  * Get the currently playing Spotify track for the extension
  *
  * Retrieve the currently playing Spotify track, including who added it if available.
  */
-export const getExtensionSpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetExtensionSpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetExtensionSpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/extension/spotify/now-playing', ...options });
+export const getExtensionSpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetExtensionSpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetExtensionSpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/api/extension/spotify/now-playing', ...options });
+
+/**
+ * Get the currently playing Spotify track for the overlay
+ *
+ * Retrieve the currently playing Spotify track, including who added it if available.
+ */
+export const getOverlaySpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetOverlaySpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetOverlaySpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/api/overlay/spotify/now-playing', ...options });

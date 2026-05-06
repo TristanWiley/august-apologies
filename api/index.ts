@@ -20,6 +20,7 @@ import { AdminSpotifyCallbackEndpoint } from "./routes/admin/spotify-callback";
 import { AdminSpotifyInfoEndpoint } from "./routes/admin/spotify-info";
 import { CommandSpotifyNowPlayingEndpoint } from "./routes/command/spotify-now-playing";
 import { ExtensionSpotifyNowPlayingEndpoint } from "./routes/extension/spotify-now-playing";
+import { OverlaySpotifyNowPlayingEndpoint } from "./routes/overlay/spotify-now-playing";
 import { fromIttyRouter } from "chanfana";
 import { SpotifyPlaylistEndpoint } from "./routes/spotify-playlist";
 import { GetAccountSessionEndpoint } from "./routes/get-account-session";
@@ -83,6 +84,12 @@ openapi.get(`${apiBase}/command/now-playing`, CommandSpotifyNowPlayingEndpoint);
 openapi.get(
   `${apiBase}/extension/spotify/now-playing`,
   ExtensionSpotifyNowPlayingEndpoint,
+);
+
+// Overlay routes
+openapi.get(
+  `${apiBase}/overlay/spotify/now-playing`,
+  OverlaySpotifyNowPlayingEndpoint,
 );
 
 const fetch = router.fetch;

@@ -10,8 +10,26 @@
   background-color: #202c39;
 }
 
+html.overlay-transparent {
+  background-color: transparent;
+}
+
+html.overlay-transparent #dvd-container {
+  display: none;
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
