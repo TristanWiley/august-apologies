@@ -766,7 +766,9 @@ export type GetExtensionSpotifyNowPlayingEndpointResponse = GetExtensionSpotifyN
 export type GetOverlaySpotifyNowPlayingEndpointData = {
     body?: never;
     path?: never;
-    query?: never;
+    query: {
+        secretAugustKey: string;
+    };
     url: '/api/overlay/spotify/now-playing';
 };
 
@@ -795,7 +797,6 @@ export type GetOverlaySpotifyNowPlayingEndpointResponses = {
             } | null;
             remainingDurationMs?: number;
         } | null;
-        shouldReload?: boolean;
     };
 };
 

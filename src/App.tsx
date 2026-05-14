@@ -78,7 +78,7 @@ export const App = () => {
       showNav: false,
     },
     { path: "/view/:id", element: <ApologyView />, auth: false, showNav: true },
-    { path: "/overlay", element: <OverlayPage />, auth: true, showNav: false },
+    { path: "/overlay", element: <OverlayPage />, auth: false, showNav: false },
   ];
 
   const content = (

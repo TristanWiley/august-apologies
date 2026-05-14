@@ -46,6 +46,11 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
     description:
       "Retrieve the currently playing Spotify track, including who added it if available.",
     tags: ["Overlay"],
+    request: {
+      query: z.object({
+        secretAugustKey: z.string(),
+      }),
+    },
     responses: {
       200: {
         description: "The currently playing Spotify track",
@@ -54,7 +59,15 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
     },
   };
 
-  async handle(_request: IRequest, env: Env): Promise<Response> {
+  async handle(request: IRequest, env: Env): Promise<Response> {
+    console.log(request.query);
+    if (
+      request.query.secretAugustKey !==
+      "SECRET_KEY_e84645fd-2c71-450a-89e8-46cb72615f6a"
+    ) {
+      return generateJSONResponse({ message: "Unauthorized" }, 401);
+    }
+
     const credentials = await getOverlaySpotifyCredentials(env);
 
     if (!credentials) {

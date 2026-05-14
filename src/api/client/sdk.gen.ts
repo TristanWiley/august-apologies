@@ -259,4 +259,4 @@ export const getExtensionSpotifyNowPlayingEndpoint = <ThrowOnError extends boole
  *
  * Retrieve the currently playing Spotify track, including who added it if available.
  */
-export const getOverlaySpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options?: Options<GetOverlaySpotifyNowPlayingEndpointData, ThrowOnError>) => (options?.client ?? client).get<GetOverlaySpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/api/overlay/spotify/now-playing', ...options });
+export const getOverlaySpotifyNowPlayingEndpoint = <ThrowOnError extends boolean = false>(options: Options<GetOverlaySpotifyNowPlayingEndpointData, ThrowOnError>) => (options.client ?? client).get<GetOverlaySpotifyNowPlayingEndpointResponses, unknown, ThrowOnError>({ url: '/api/overlay/spotify/now-playing', ...options });
