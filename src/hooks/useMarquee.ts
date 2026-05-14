@@ -16,12 +16,18 @@ export function useMarquee(
     if (!container || !text) return;
 
     let rafId: number;
+    let timeoutId: ReturnType<typeof setTimeout>;
     let cancelled = false;
 
-    const overflow = text.scrollWidth - container.clientWidth;
+    function getOverflow(): number {
+      if (!container || !text) return 0;
+      // Force a layout read each cycle so stale values don't accumulate.
+      // Use getBoundingClientRect for consistency across rendering environments.
+      const containerWidth = container.getBoundingClientRect().width;
+      const textWidth = text.getBoundingClientRect().width;
+      return Math.max(0, textWidth - containerWidth);
+    }
 
-    // Animate from `start` offset to `end` offset over the correct duration,
-    // then call `onDone` after an optional end-pause.
     function animateTo(
       from: number,
       to: number,
@@ -29,6 +35,11 @@ export function useMarquee(
       endPauseMs = 0,
     ) {
       const distance = Math.abs(to - from);
+      if (distance === 0) {
+        onDone();
+        return;
+      }
+
       const duration = (distance / MARQUEE_SPEED_PX_PER_SEC) * 1000;
       const startTime = performance.now();
 
@@ -43,9 +54,9 @@ export function useMarquee(
           rafId = requestAnimationFrame(tick);
         } else {
           if (endPauseMs > 0) {
-            rafId = setTimeout(() => {
+            timeoutId = setTimeout(() => {
               if (!cancelled) onDone();
-            }, endPauseMs) as unknown as number;
+            }, endPauseMs);
           } else {
             onDone();
           }
@@ -57,7 +68,13 @@ export function useMarquee(
 
     function cycle() {
       if (cancelled) return;
-      // Scroll forward to the end, pause, scroll back, pause, repeat
+
+      // Re-measure every cycle so layout changes are picked up.
+      const overflow = getOverflow();
+
+      // No overflow — text fits, nothing to animate.
+      if (overflow <= 0) return;
+
       animateTo(
         0,
         overflow,
@@ -67,7 +84,7 @@ export function useMarquee(
             0,
             () => {
               if (!cancelled) {
-                rafId = setTimeout(cycle, PAUSE_MS) as unknown as number;
+                timeoutId = setTimeout(cycle, PAUSE_MS);
               }
             },
             PAUSE_MS,
@@ -77,13 +94,12 @@ export function useMarquee(
       );
     }
 
-    // Small initial delay before first scroll
-    rafId = setTimeout(cycle, PAUSE_MS) as unknown as number;
+    timeoutId = setTimeout(cycle, PAUSE_MS);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafId);
-      clearTimeout(rafId);
+      clearTimeout(timeoutId);
       if (text) text.style.transform = "";
     };
   }, [active, containerRef, textRef]);

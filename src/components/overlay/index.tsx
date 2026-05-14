@@ -118,9 +118,9 @@ export const OverlayPage = () => {
   const { title, artists, addedBy, image } = track;
 
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 px-4">
+    <div className="flex flex-col items-center justify-center gap-6 px-4">
       <main className="w-full flex flex-col items-center gap-3 justify-center">
-        <div className="bg-[#202c39] rounded-md overflow-hidden flex flex-row">
+        <div className="bg-[#202c39] rounded-md overflow-hidden flex flex-row w-full">
           {image ? (
             <img src={image.url} alt="Album Art" className="w-16 h-16" />
           ) : (
@@ -128,7 +128,7 @@ export const OverlayPage = () => {
               <MusicNoteIcon className="text-slate-400" />
             </div>
           )}
-          <div className="text-left flex items-center px-2.5 min-w-52 max-w-2xs">
+          <div className="text-left flex items-center px-2.5 min-w-52">
             <div className="min-w-0 w-full">
               <MarqueeText className="text-2xl font-semibold leading-tight text-slate-100">
                 {title || "Unknown Song"}

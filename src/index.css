@@ -11,11 +11,16 @@
 }
 
 html.overlay-transparent {
+  height: unset !important;
   background-color: transparent;
 }
 
 html.overlay-transparent #dvd-container {
   display: none;
+}
+
+html.overlay-transparent .h-full {
+  height: unset;
 }
 
 html,
