@@ -5,7 +5,8 @@
     "types": ["./worker-configuration.d.ts", "vite/client"],
     "noEmit": true,
     "target": "es6",
-    "lib": ["ESNext"]
+    "lib": ["ESNext"],
+    "composite": true
   },
   "include": ["api"]
 }

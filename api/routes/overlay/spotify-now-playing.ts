@@ -8,7 +8,7 @@ import {
   getStoredSpotifySongAdder,
   storeSpotifySongAdder,
 } from "../../utils/cache";
-import { OpenAPIRoute } from "chanfana";
+import { contentJson, OpenAPIRoute } from "chanfana";
 import z from "zod";
 
 const OverlaySpotifyNowPlayingArtistSchema = z.object({
@@ -38,7 +38,6 @@ const OverlaySpotifyNowPlayingTrackSchema = z.object({
 
 const OverlaySpotifyNowPlayingEndpointResponseSchema = z.object({
   track: OverlaySpotifyNowPlayingTrackSchema.nullable(),
-  shouldReload: z.boolean().optional(), // Optional field to indicate if the overlay should reload
 });
 
 export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
@@ -47,11 +46,6 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
     description:
       "Retrieve the currently playing Spotify track, including who added it if available.",
     tags: ["Overlay"],
-    request: {
-      query: z.object({
-        clientVersion: z.string().optional(),
-      }),
-    },
     responses: {
       200: {
         description: "The currently playing Spotify track",
@@ -60,7 +54,7 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
     },
   };
 
-  async handle(_request: IRequest, env: Env) {
+  async handle(_request: IRequest, env: Env): Promise<Response> {
     const credentials = await getOverlaySpotifyCredentials(env);
 
     if (!credentials) {

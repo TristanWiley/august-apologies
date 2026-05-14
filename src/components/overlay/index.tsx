@@ -56,6 +56,22 @@ export const OverlayPage = () => {
     };
   }, []);
 
+  // Every 10 seconds refresh
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { data, error } = await getOverlaySpotifyNowPlayingEndpoint();
+      if (error || !data || !data.track) {
+        console.error("Error fetching song data:", error);
+        setSongData(SAMPLE_SPOTIFY_DATA_TEMPLATE.track);
+        return;
+      }
+
+      setSongData(data.track);
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const fetchSongData = async () => {
       const { data, error } = await getOverlaySpotifyNowPlayingEndpoint();
@@ -65,10 +81,6 @@ export const OverlayPage = () => {
         return;
       }
       setSongData(data.track);
-
-      if (data.shouldReload) {
-        window.location.reload();
-      }
     };
 
     fetchSongData();
