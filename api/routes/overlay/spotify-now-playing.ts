@@ -33,10 +33,12 @@ const OverlaySpotifyNowPlayingTrackSchema = z.object({
       height: z.number().nullable(),
     })
     .nullable(),
+  remainingDurationMs: z.number().optional(), // Optional field for remaining duration in milliseconds
 });
 
 const OverlaySpotifyNowPlayingEndpointResponseSchema = z.object({
   track: OverlaySpotifyNowPlayingTrackSchema.nullable(),
+  shouldReload: z.boolean().optional(), // Optional field to indicate if the overlay should reload
 });
 
 export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
@@ -45,14 +47,15 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
     description:
       "Retrieve the currently playing Spotify track, including who added it if available.",
     tags: ["Overlay"],
+    request: {
+      query: z.object({
+        clientVersion: z.string().optional(),
+      }),
+    },
     responses: {
       200: {
         description: "The currently playing Spotify track",
-        content: {
-          "application/json": {
-            schema: OverlaySpotifyNowPlayingEndpointResponseSchema,
-          },
-        },
+        ...contentJson(OverlaySpotifyNowPlayingEndpointResponseSchema),
       },
     },
   };
@@ -83,6 +86,10 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
       return generateJSONResponse({ track: null }, 200);
     }
 
+    const progressMS = response.progress_ms ?? 0;
+    const durationMS = response.item.duration_ms;
+    const remainingDurationMs = durationMS - progressMS;
+
     const track = response.item as Track;
 
     const artists: SimplifiedArtist[] = track.artists;
@@ -110,22 +117,17 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
       await storeSpotifySongAdder(track.uri, addedBy?.displayName ?? null);
     }
 
-    if (addedBy) {
-      return generateJSONResponse(
-        {
-          track: {
-            artists,
-            title,
-            addedBy: addedBy.displayName,
-            image: bestImage,
-          },
-        },
-        200,
-      );
-    }
-
     return generateJSONResponse(
-      { track: { artists, title, addedBy: null, image: bestImage } },
+      {
+        track: {
+          artists,
+          title,
+          addedBy: addedBy?.displayName || null,
+          image: bestImage,
+          remainingDurationMs: remainingDurationMs,
+        },
+        shouldReload: false,
+      },
       200,
     );
   }

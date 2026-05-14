@@ -793,7 +793,9 @@ export type GetOverlaySpotifyNowPlayingEndpointResponses = {
                 width: number | null;
                 height: number | null;
             } | null;
+            remainingDurationMs?: number;
         } | null;
+        shouldReload?: boolean;
     };
 };
 

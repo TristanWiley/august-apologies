@@ -27,6 +27,7 @@ const SAMPLE_SPOTIFY_DATA_TEMPLATE: GetOverlaySpotifyNowPlayingEndpointResponse 
         url: "https://i.scdn.co/image/ab67616d0000b273692200d20ace9f3500171527",
         width: 640,
       },
+      remainingDurationMs: undefined,
     },
   };
 
@@ -39,9 +40,10 @@ const SAMPLE_SPOTIFY_DATA_TEMPLATE: GetOverlaySpotifyNowPlayingEndpointResponse 
  * - Better animations
  */
 
+type SpotifyTrack = GetOverlaySpotifyNowPlayingEndpointResponse["track"];
+
 export const OverlayPage = () => {
-  const [songData, setSongData] =
-    useState<GetOverlaySpotifyNowPlayingEndpointResponse | null>(null);
+  const [songData, setSongData] = useState<SpotifyTrack | null>(null);
   const titleContainerRef = useRef<HTMLDivElement>(null);
   const titleTextRef = useRef<HTMLSpanElement>(null);
   const [shouldMarqueeTitle, setShouldMarqueeTitle] = useState(false);
@@ -59,10 +61,14 @@ export const OverlayPage = () => {
       const { data, error } = await getOverlaySpotifyNowPlayingEndpoint();
       if (error || !data || !data.track) {
         console.error("Error fetching song data:", error);
-        setSongData(SAMPLE_SPOTIFY_DATA_TEMPLATE);
+        setSongData(SAMPLE_SPOTIFY_DATA_TEMPLATE.track);
         return;
       }
-      setSongData(data);
+      setSongData(data.track);
+
+      if (data.shouldReload) {
+        window.location.reload();
+      }
     };
 
     fetchSongData();
@@ -98,13 +104,13 @@ export const OverlayPage = () => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [songData?.track?.title]);
+  }, [songData?.title]);
 
   if (!songData) {
     return null;
   }
 
-  const { track } = songData;
+  const track = songData;
 
   if (!track) {
     return null;
@@ -123,7 +129,10 @@ export const OverlayPage = () => {
               <MusicNoteIcon className="text-slate-400" />
             </div>
           )}
-          <div ref={titleContainerRef} className="space-y-4 text-left flex items-center px-2.5 min-w-52 max-w-xs">
+          <div
+            ref={titleContainerRef}
+            className="space-y-4 text-left flex items-center px-2.5 min-w-52 max-w-xs"
+          >
             <div className="min-w-0 w-full">
               <div className="w-full overflow-hidden">
                 {shouldMarqueeTitle ? (
