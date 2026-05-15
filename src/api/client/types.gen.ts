@@ -636,6 +636,41 @@ export type PostSpotifyRemoveTrackEndpointData = {
     url: '/api/spotify/playlist/remove';
 };
 
+export type PostSpotifyRemoveTrackEndpointErrors = {
+    /**
+     * Bad request - missing or invalid parameters
+     */
+    400: {
+        message: string;
+    };
+    /**
+     * Unauthorized - invalid session
+     */
+    401: {
+        message: string;
+    };
+    /**
+     * Forbidden - user is not a subscriber or does not own the track
+     */
+    403: {
+        message: string;
+    };
+    /**
+     * Not found - track or playlist not found
+     */
+    404: {
+        message: string;
+    };
+    /**
+     * Internal server error
+     */
+    500: {
+        message: string;
+    };
+};
+
+export type PostSpotifyRemoveTrackEndpointError = PostSpotifyRemoveTrackEndpointErrors[keyof PostSpotifyRemoveTrackEndpointErrors];
+
 export type PostSpotifyRemoveTrackEndpointResponses = {
     /**
      * Track removed successfully

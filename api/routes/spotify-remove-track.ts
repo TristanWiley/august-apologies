@@ -60,6 +60,57 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
         description: "Track removed successfully",
         ...contentJson(SpotifyRemoveTrackEndpointResponseSchema),
       },
+      400: {
+        description: "Bad request - missing or invalid parameters",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      },
+      401: {
+        description: "Unauthorized - invalid session",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      },
+      403: {
+        description:
+          "Forbidden - user is not a subscriber or does not own the track",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      },
+      404: {
+        description: "Not found - track or playlist not found",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      },
+      500: {
+        description: "Internal server error",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      },
     },
   };
 
@@ -127,6 +178,8 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
           500,
         );
       }
+
+      console.log(`Attempting to remove track: ${parsedTrackUri}`);
 
       // Remove track from playlist
       await spotifyClient.playlists.removeItemsFromPlaylist(

@@ -1,6 +1,7 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import React, { useCallback } from "react";
 import { useLocalStorage } from "../../hooks/use-local-storage";
+import { postSpotifyRemoveTrackEndpoint } from "../../api/client";
 
 type Track = {
   id: string;
@@ -234,17 +235,17 @@ export const PlaylistPage: React.FC = () => {
   };
 
   const handleConfirmRemove = async () => {
-    if (!confirmingTrack) return;
+    if (!confirmingTrack || !sessionId) return;
     setConfirmLoading(true);
     try {
-      const res = await fetch(`/api/spotify/playlist/remove`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, trackUri: confirmingTrack.id }),
+      const res = await postSpotifyRemoveTrackEndpoint({
+        body: {
+          sessionId,
+          trackUri: confirmingTrack.id,
+        },
       });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.message || "Failed to remove track");
+      if (res.error || !res.data.success) {
+        throw new Error(res?.error?.message || "Failed to remove track");
       }
 
       setPlaylist((p) =>
