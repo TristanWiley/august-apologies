@@ -1,5 +1,5 @@
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import React from "react";
+import React, { useCallback } from "react";
 import { useLocalStorage } from "../../hooks/use-local-storage";
 
 type Track = {
@@ -85,6 +85,12 @@ export const PlaylistPage: React.FC = () => {
     "pending-songs-collapsed",
     false,
   );
+  const [selectedItems, setSelectedItems] = useLocalStorage<
+    Record<string, boolean>
+  >("selected-admin-song-items", {});
+  const [lastSelectedIndex, setLastSelectedIndex] = React.useState<
+    number | null
+  >(null);
 
   const sessionId =
     typeof window !== "undefined"
@@ -325,6 +331,46 @@ export const PlaylistPage: React.FC = () => {
     }
   };
 
+  const handleSelect = useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement, HTMLInputElement>,
+      trackId: string,
+    ) => {
+      const isShift = (e.nativeEvent as MouseEvent).shiftKey;
+
+      if (isShift && lastSelectedIndex !== null && playlist) {
+        const trackIds = playlist.tracks.map((t) => t.id);
+        const currentIndex = trackIds.findIndex((id) => id === trackId);
+        if (currentIndex === -1) return;
+
+        const [start, end] =
+          currentIndex < lastSelectedIndex
+            ? [currentIndex, lastSelectedIndex]
+            : [lastSelectedIndex, currentIndex];
+
+        const newSelected = { ...selectedItems };
+        for (let i = start; i <= end; i++) {
+          newSelected[trackIds[i]] = e.target.checked;
+        }
+        setSelectedItems(newSelected);
+      } else {
+        setSelectedItems((prev) => ({
+          ...prev,
+          [trackId]: e.target.checked,
+        }));
+      }
+
+      const trackIds = playlist?.tracks.map((t) => t.id) || [];
+      const currentIndex = trackIds.findIndex((id) => id === trackId);
+      if (currentIndex !== -1) {
+        setLastSelectedIndex(currentIndex);
+      }
+    },
+    [lastSelectedIndex, playlist, selectedItems],
+  );
+
+  const selectedCount = Object.values(selectedItems).filter(Boolean).length;
+
   return (
     <div className="h-full flex flex-col items-center gap-6 px-4">
       <main className="w-full max-w-4xl mt-4">
@@ -454,6 +500,51 @@ export const PlaylistPage: React.FC = () => {
           </div>
         ) : null}
 
+        <div className="mt-4 flex items-center gap-4">
+          <h3 className="text-lg font-semibold">
+            Selected Tracks: {selectedCount}
+          </h3>
+          {selectedCount > 0 ? (
+            <button
+              onClick={() => setSelectedItems({})}
+              className="text-sm text-red-400 hover:text-red-300 transition cursor-pointer"
+            >
+              Clear Selection
+            </button>
+          ) : null}
+          {isAdmin && selectedCount > 0 ? (
+            <button
+              onClick={() => {
+                if (
+                  confirm(
+                    `Are you sure you want to remove ${selectedCount} selected track(s)?`,
+                  )
+                ) {
+                  // For simplicity, we'll just remove them one by one here.
+                  // In a real app, you'd want a batch API endpoint for this.
+                  Object.entries(selectedItems).forEach(
+                    ([trackId, isSelected]) => {
+                      if (isSelected) {
+                        setConfirmingTrack(
+                          playlist?.tracks.find((t) => t.id === trackId) ||
+                            null,
+                        );
+                        handleConfirmRemove();
+                      }
+                    },
+                  );
+                  setSelectedItems({});
+                }
+              }}
+              className="text-sm text-red-400 hover:text-red-300 transition cursor-pointer"
+            >
+              Remove Selected
+            </button>
+          ) : null}
+        </div>
+
+        <hr className="mt-4" />
+
         <div className="mt-6">
           {/* compute content to avoid nested ternaries */}
           {(() => {
@@ -498,6 +589,12 @@ export const PlaylistPage: React.FC = () => {
                             key={t.id || idx}
                             className="flex items-center gap-4"
                           >
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4"
+                              onChange={(e) => handleSelect(e, t.id)}
+                              checked={!!selectedItems[t.id]}
+                            />
                             <div className="w-6 text-right text-sm text-slate-300">
                               {trackNumber}
                             </div>
