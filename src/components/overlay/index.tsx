@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  getOverlaySpotifyNowPlayingEndpoint,
-  type GetOverlaySpotifyNowPlayingEndpointResponse,
-} from "../../api/client";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { MarqueeText } from "../marquee-text";
 import { useSearchParams } from "react-router";
+import { apiClient } from "../../api/client";
+import type { operations } from "../../api/schema";
+
+type GetOverlaySpotifyNowPlayingEndpointResponse =
+  operations["get_OverlaySpotifyNowPlayingEndpoint"]["responses"]["200"]["content"]["application/json"];
 
 const SAMPLE_SPOTIFY_DATA_TEMPLATE: GetOverlaySpotifyNowPlayingEndpointResponse =
   {
@@ -64,11 +65,16 @@ export const OverlayPage = () => {
         return;
       }
 
-      const { data, error } = await getOverlaySpotifyNowPlayingEndpoint({
-        query: {
-          secretAugustKey: secretKey,
+      const { data, error } = await apiClient.GET(
+        "/api/overlay/spotify/now-playing",
+        {
+          params: {
+            query: {
+              secretAugustKey: secretKey,
+            },
+          },
         },
-      });
+      );
       if (error || !data || !data.track) {
         console.error("Error fetching song data:", error);
         setSongData(SAMPLE_SPOTIFY_DATA_TEMPLATE.track);
@@ -89,11 +95,16 @@ export const OverlayPage = () => {
         return;
       }
 
-      const { data, error } = await getOverlaySpotifyNowPlayingEndpoint({
-        query: {
-          secretAugustKey: secretKey,
+      const { data, error } = await apiClient.GET(
+        "/api/overlay/spotify/now-playing",
+        {
+          params: {
+            query: {
+              secretAugustKey: secretKey,
+            },
+          },
         },
-      });
+      );
       if (error || !data || !data.track) {
         console.error("Error fetching song data:", error);
         setSongData(SAMPLE_SPOTIFY_DATA_TEMPLATE.track);
