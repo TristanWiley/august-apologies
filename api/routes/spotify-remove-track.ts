@@ -10,8 +10,7 @@ import { createSpotifyApiClient } from "../utils/spotify-client";
 import { parseSpotifyTrackId } from "../utils/spotify";
 import z from "zod";
 import { contentJson, OpenAPIRoute } from "chanfana";
-
-const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+import { SPOTIFY_PLAYLIST_ID } from "../utils/constants";
 
 const SpotifyRemoveTrackEndpointEndpointSchema = z.object({
   sessionId: z.uuid(),
@@ -130,15 +129,18 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
       }
 
       // Remove track from playlist
-      await spotifyClient.playlists.removeItemsFromPlaylist(PLAYLIST_ID, {
-        tracks: [{ uri: parsedTrackUri }],
-      });
+      await spotifyClient.playlists.removeItemsFromPlaylist(
+        SPOTIFY_PLAYLIST_ID,
+        {
+          tracks: [{ uri: parsedTrackUri }],
+        },
+      );
 
       // Remove from database
       await db.removePlaylistEntry(parsedTrackUri);
 
       // Clear caches to force refresh
-      await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+      await clearSpotifyPlaylistCache(SPOTIFY_PLAYLIST_ID, env);
       await clearSpotifyOwnershipCache(env);
 
       console.log(

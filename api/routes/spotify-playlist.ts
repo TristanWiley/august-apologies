@@ -14,6 +14,7 @@ import { createSpotifyApiClient } from "../utils/spotify-client";
 import { contentJson, OpenAPIRoute } from "chanfana";
 import z from "zod";
 import { ErrorResponseSchema } from "../types/endpoints";
+import { SPOTIFY_PLAYLIST_ID } from "../utils/constants";
 
 const SpotifyPlaylistEndpointResponseSchema = z.object({
   id: z.string(),
@@ -42,7 +43,6 @@ type SpotifyPlaylistEndpointResponse = z.infer<
   typeof SpotifyPlaylistEndpointResponseSchema
 >;
 
-const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
 const CACHE_REFRESH_THRESHOLD = 60;
 
 // Decode common HTML entities and numeric entities so descriptions like
@@ -88,7 +88,10 @@ async function fetchAndCachePlaylist(
       expires_in: credentials.access_token_expires_in || 3600,
     } as AccessToken);
 
-    const playlist = await getPlaylistWithAllTracks(spotifyClient, PLAYLIST_ID);
+    const playlist = await getPlaylistWithAllTracks(
+      spotifyClient,
+      SPOTIFY_PLAYLIST_ID,
+    );
 
     // Simplify tracks
     const tracks = playlist.tracks.items.map(
@@ -147,7 +150,7 @@ export class SpotifyPlaylistEndpoint extends OpenAPIRoute {
 
   async handle(_request: IRequest, env: Env, ctx: ExecutionContext) {
     try {
-      const cachedData = await getStoredSpotifyPlaylist(PLAYLIST_ID);
+      const cachedData = await getStoredSpotifyPlaylist(SPOTIFY_PLAYLIST_ID);
 
       // If we have cached data, return it immediately
       if (cachedData) {

@@ -9,8 +9,7 @@ import {
 import { createSpotifyApiClient } from "../utils/spotify-client";
 import z from "zod";
 import { contentJson, OpenAPIRoute } from "chanfana";
-
-const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+import { SPOTIFY_PLAYLIST_ID } from "../utils/constants";
 
 const SpotifyApproveSongEndpointRequestSchema = z.object({
   sessionId: z.uuid(),
@@ -106,7 +105,7 @@ export class SpotifyApproveSongEndpoint extends OpenAPIRoute {
       }
 
       // Add track to playlist
-      await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
+      await spotifyClient.playlists.addItemsToPlaylist(SPOTIFY_PLAYLIST_ID, [
         spotifyId,
       ]);
 
@@ -117,7 +116,7 @@ export class SpotifyApproveSongEndpoint extends OpenAPIRoute {
       await db.removePendingSong(spotifyId);
 
       // Clear caches immediately to force refresh
-      await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+      await clearSpotifyPlaylistCache(SPOTIFY_PLAYLIST_ID, env);
       await clearSpotifyOwnershipCache(env);
 
       // Send Discord webhook notification with waitUntil

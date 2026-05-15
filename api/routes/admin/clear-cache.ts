@@ -8,8 +8,7 @@ import {
 import { ErrorResponseSchema } from "../../types/endpoints";
 import { OpenAPIRoute, contentJson } from "chanfana";
 import z from "zod";
-
-const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+import { SPOTIFY_PLAYLIST_ID } from "../../utils/constants";
 
 const ClearCacheEndpointRequestSchema = z.object({
   sessionId: z.string(),
@@ -87,7 +86,7 @@ export class ClearCacheEndpoint extends OpenAPIRoute {
       const clearedCaches = [];
 
       if (cacheType === "playlist" || cacheType === "all") {
-        await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+        await clearSpotifyPlaylistCache(SPOTIFY_PLAYLIST_ID, env);
         clearedCaches.push("playlist");
       }
 

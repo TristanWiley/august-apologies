@@ -9,9 +9,9 @@
     "build": "vite build",
     "build:twitch": "vite build --config extensions/twitch/vite.config.ts",
     "openapi-fetch": "curl -X GET http://localhost:5173/api/openapi.json -o src/api/openapi.json",
-    "gen:client": "bun openapi-fetch && openapi-ts",
-    "preview": "npm run build && vite preview",
-    "deploy": "npm run build && wrangler deploy",
+    "gen:client": "pnpm openapi-fetch && openapi-ts",
+    "preview": "pnpm run build && vite preview",
+    "deploy": "pnpm run build && wrangler deploy",
     "lint": "eslint ."
   },
   "dependencies": {

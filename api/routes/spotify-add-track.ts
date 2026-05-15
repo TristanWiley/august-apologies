@@ -10,8 +10,7 @@ import { createSpotifyApiClient } from "../utils/spotify-client";
 import z from "zod";
 import { contentJson, OpenAPIRoute } from "chanfana";
 import { parseSpotifyTrackId } from "../utils/spotify";
-
-const PLAYLIST_ID = "5ydVffCAhJeKwVdnQWIm5E";
+import { SPOTIFY_PLAYLIST_ID } from "../utils/constants";
 
 const SpotifyAddTrackEndpointRequestSchema = z.object({
   sessionId: z.uuid(),
@@ -140,7 +139,7 @@ export class SpotifyAddTrackEndpoint extends OpenAPIRoute {
       if (canAddDirectly) {
         // Trusted users and owners can add directly without approval
         // Add track to playlist
-        await spotifyClient.playlists.addItemsToPlaylist(PLAYLIST_ID, [
+        await spotifyClient.playlists.addItemsToPlaylist(SPOTIFY_PLAYLIST_ID, [
           parsedTrackUri,
         ]);
 
@@ -153,7 +152,7 @@ export class SpotifyAddTrackEndpoint extends OpenAPIRoute {
         });
 
         // Clear caches immediately to force refresh
-        await clearSpotifyPlaylistCache(PLAYLIST_ID, env);
+        await clearSpotifyPlaylistCache(SPOTIFY_PLAYLIST_ID, env);
         await clearSpotifyOwnershipCache(env);
 
         // Send Discord webhook notification with waitUntil
