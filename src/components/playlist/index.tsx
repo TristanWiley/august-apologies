@@ -1,4 +1,6 @@
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import React from "react";
+import { useLocalStorage } from "../../hooks/use-local-storage";
 
 type Track = {
   id: string;
@@ -79,6 +81,10 @@ export const PlaylistPage: React.FC = () => {
   const [processingPending, setProcessingPending] = React.useState<
     string | null
   >(null);
+  const [isPendingSongsCollapsed, setIsPendingSongsCollapsed] = useLocalStorage(
+    "pending-songs-collapsed",
+    false,
+  );
 
   const sessionId =
     typeof window !== "undefined"
@@ -375,64 +381,76 @@ export const PlaylistPage: React.FC = () => {
 
         {isAdmin && pendingSongs.length > 0 ? (
           <div className="mt-4 p-4 bg-blue-900 border border-blue-700 rounded">
-            <h3 className="text-lg font-semibold text-blue-100 mb-3">
-              Pending Songs Approval ({pendingSongs.length})
-            </h3>
-            <div className="flex flex-col gap-3">
-              {pendingSongs.map((song) => (
-                <div
-                  key={song.id}
-                  className="flex items-center gap-4 bg-slate-800 p-3 rounded"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-white">
-                      {song.track_name}
+            <button
+              onClick={() =>
+                setIsPendingSongsCollapsed(!isPendingSongsCollapsed)
+              }
+              className="w-full flex items-center justify-between gap-2 hover:opacity-80 transition"
+            >
+              <h3 className="text-lg font-semibold text-blue-100">
+                Pending Songs Approval ({pendingSongs.length})
+              </h3>
+              <span className="text-blue-100 text-xl">
+                {isPendingSongsCollapsed ? <ExpandMore /> : <ExpandLess />}
+              </span>
+            </button>
+            {!isPendingSongsCollapsed && (
+              <div className="flex flex-col gap-3 mt-3">
+                {pendingSongs.map((song) => (
+                  <div
+                    key={song.id}
+                    className="flex items-center gap-4 bg-slate-800 p-3 rounded"
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium text-white">
+                        {song.track_name}
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        {song.track_artists}
+                        {song.track_album ? ` • ${song.track_album}` : ""}
+                      </div>
+                      <div className="text-xs text-amber-400 mt-1">
+                        Added by {song.added_by_display_name}
+                      </div>
                     </div>
-                    <div className="text-sm text-slate-400">
-                      {song.track_artists}
-                      {song.track_album ? ` • ${song.track_album}` : ""}
+                    <div className="text-sm text-slate-300">
+                      {Math.floor(song.track_duration_ms / 1000 / 60)}:
+                      {String(
+                        Math.floor((song.track_duration_ms / 1000) % 60),
+                      ).padStart(2, "0")}
                     </div>
-                    <div className="text-xs text-amber-400 mt-1">
-                      Added by {song.added_by_display_name}
+                    {song.external_url ? (
+                      <a
+                        href={song.external_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-[#1DB954]"
+                      >
+                        Listen
+                      </a>
+                    ) : null}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleApproveSong(song.spotify_id)}
+                        disabled={processingPending === song.spotify_id}
+                        className="cursor-pointer px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {processingPending === song.spotify_id
+                          ? "..."
+                          : "Approve"}
+                      </button>
+                      <button
+                        onClick={() => handleDisapproveSong(song.spotify_id)}
+                        disabled={processingPending === song.spotify_id}
+                        className="cursor-pointer px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {processingPending === song.spotify_id ? "..." : "Deny"}
+                      </button>
                     </div>
                   </div>
-                  <div className="text-sm text-slate-300">
-                    {Math.floor(song.track_duration_ms / 1000 / 60)}:
-                    {String(
-                      Math.floor((song.track_duration_ms / 1000) % 60),
-                    ).padStart(2, "0")}
-                  </div>
-                  {song.external_url ? (
-                    <a
-                      href={song.external_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-[#1DB954]"
-                    >
-                      Listen
-                    </a>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleApproveSong(song.spotify_id)}
-                      disabled={processingPending === song.spotify_id}
-                      className="cursor-pointer px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {processingPending === song.spotify_id
-                        ? "..."
-                        : "Approve"}
-                    </button>
-                    <button
-                      onClick={() => handleDisapproveSong(song.spotify_id)}
-                      disabled={processingPending === song.spotify_id}
-                      className="cursor-pointer px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {processingPending === song.spotify_id ? "..." : "Deny"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : null}
 
