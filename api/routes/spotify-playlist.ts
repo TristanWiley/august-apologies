@@ -8,7 +8,7 @@ import {
   type PlaylistedTrack,
   type Track,
   type AccessToken,
-} from "@spotify/web-api-ts-sdk";
+} from "@tristanwiley/spotify-web-api-ts-sdk";
 import { getStoredSpotifyPlaylist, storeSpotifyPlaylist } from "../utils/cache";
 import { createSpotifyApiClient } from "../utils/spotify-client";
 import { contentJson, OpenAPIRoute } from "chanfana";

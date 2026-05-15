@@ -1,8 +1,8 @@
 import type { IRequest } from "itty-router";
 import { generateJSONResponse, generateTextResponse } from "../../utils/utils";
 import { getOverlaySpotifyCredentials } from "../../utils/overlay";
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
-import type { Track } from "@spotify/web-api-ts-sdk";
+import { SpotifyApi } from "@tristanwiley/spotify-web-api-ts-sdk";
+import type { Track } from "@tristanwiley/spotify-web-api-ts-sdk";
 import { DB } from "../../db";
 import {
   getStoredSpotifySongAdder,

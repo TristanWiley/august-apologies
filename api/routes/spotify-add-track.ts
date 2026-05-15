@@ -1,7 +1,11 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
-import type { SpotifyApi, AccessToken, Track } from "@spotify/web-api-ts-sdk";
+import type {
+  SpotifyApi,
+  AccessToken,
+  Track,
+} from "@tristanwiley/spotify-web-api-ts-sdk";
 import {
   clearSpotifyPlaylistCache,
   clearSpotifyOwnershipCache,

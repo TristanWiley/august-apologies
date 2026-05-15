@@ -243,7 +243,7 @@ export const PlaylistPage: React.FC = () => {
         {
           body: {
             sessionId,
-            trackUri: confirmingTrack.id,
+            trackUri: [confirmingTrack.id],
           },
         },
       );
@@ -516,27 +516,42 @@ export const PlaylistPage: React.FC = () => {
               Clear Selection
             </button>
           ) : null}
-          {isAdmin && selectedCount > 0 ? (
+          {isAdmin && sessionId && selectedCount > 0 ? (
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (
                   confirm(
                     `Are you sure you want to remove ${selectedCount} selected track(s)?`,
                   )
                 ) {
-                  // For simplicity, we'll just remove them one by one here.
-                  // In a real app, you'd want a batch API endpoint for this.
-                  Object.entries(selectedItems).forEach(
-                    ([trackId, isSelected]) => {
-                      if (isSelected) {
-                        setConfirmingTrack(
-                          playlist?.tracks.find((t) => t.id === trackId) ||
-                            null,
-                        );
-                        handleConfirmRemove();
-                      }
+                  const { data, error } = await apiClient.POST(
+                    "/api/spotify/playlist/remove",
+                    {
+                      body: {
+                        sessionId,
+                        trackUri: Object.keys(selectedItems).filter(
+                          (id) => selectedItems[id],
+                        ),
+                      },
                     },
                   );
+
+                  if (error || !data.success) {
+                    alert(error?.message || "Failed to remove selected tracks");
+                    return;
+                  }
+
+                  // Remove those items
+                  setPlaylist((p) => {
+                    if (!p) return p;
+                    return {
+                      ...p,
+                      tracks: p.tracks.filter(
+                        (track) => !selectedItems[track.id],
+                      ),
+                    };
+                  });
+
                   setSelectedItems({});
                 }
               }}

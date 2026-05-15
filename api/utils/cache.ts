@@ -1,4 +1,4 @@
-import type { AccessToken } from "@spotify/web-api-ts-sdk";
+import type { AccessToken } from "@tristanwiley/spotify-web-api-ts-sdk";
 import type { SimplifiedPlaylistToReturn } from "../routes/spotify-playlist";
 import type { SpotifyOwnership } from "../types/db";
 

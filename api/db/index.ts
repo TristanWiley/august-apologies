@@ -1,6 +1,6 @@
 import { drizzle, DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./drizzle/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, inArray, or } from "drizzle-orm";
 import type { SpotifyOwnership } from "../types/db";
 
 export type AccountSelectType = typeof schema.accounts.$inferSelect;
@@ -261,6 +261,12 @@ export class DB {
     await this.db
       .delete(schema.playlistEntries)
       .where(eq(schema.playlistEntries.song_id, spotifyId));
+  }
+
+  public async removePlaylistEntries(spotifyIds: string[]): Promise<void> {
+    await this.db
+      .delete(schema.playlistEntries)
+      .where(inArray(schema.playlistEntries.song_id, spotifyIds));
   }
 
   // Ban management

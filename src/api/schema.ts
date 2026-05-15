@@ -1298,7 +1298,7 @@ export interface operations {
                 "application/json": {
                     /** Format: uuid */
                     sessionId: string;
-                    trackUri: string;
+                    trackUri: string[];
                 };
             };
         };

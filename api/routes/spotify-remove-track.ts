@@ -1,7 +1,10 @@
 import type { IRequest } from "itty-router";
 import { DB } from "../db";
 import { generateJSONResponse, getSpotifyCredentials } from "../utils/utils";
-import type { SpotifyApi, AccessToken } from "@spotify/web-api-ts-sdk";
+import type {
+  SpotifyApi,
+  AccessToken,
+} from "@tristanwiley/spotify-web-api-ts-sdk";
 import {
   clearSpotifyPlaylistCache,
   clearSpotifyOwnershipCache,
@@ -14,7 +17,7 @@ import { SPOTIFY_PLAYLIST_ID } from "../utils/constants";
 
 const SpotifyRemoveTrackEndpointEndpointSchema = z.object({
   sessionId: z.uuid(),
-  trackUri: z.string().min(1),
+  trackUri: z.array(z.string()).min(1),
 });
 
 const SpotifyRemoveTrackEndpointResponseSchema = z.object({
@@ -119,25 +122,29 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
       const body = await request.json();
       const { sessionId, trackUri } = body as {
         sessionId?: string;
-        trackUri?: string;
+        trackUri?: string[];
       };
 
       // Validate input
-      if (!sessionId || !trackUri) {
+      if (!sessionId || !trackUri || trackUri.length === 0) {
         return generateJSONResponse({ message: "Missing params" }, 400);
       }
 
-      // Parse track URI - accept both spotify:track: and URLs
-      const parsedTrackUri = parseSpotifyTrackId(trackUri.trim());
-      if (!parsedTrackUri) {
+      // Parse track URIs - accept both spotify:track: and URLs
+      const parsedTrackUris = trackUri
+        .map((uri) => parseSpotifyTrackId(uri.trim()))
+        .filter((v): v is string => !!v);
+      if (parsedTrackUris.length === 0) {
         return generateJSONResponse(
-          { message: "Invalid track URI or URL" },
+          { message: "Invalid track URIs or URLs" },
           400,
         );
       }
 
       // Extract track ID from URI to validate format
-      const trackIdMatch = parsedTrackUri.match(/spotify:track:([a-zA-Z0-9]+)/);
+      const trackIdMatch = parsedTrackUris[0].match(
+        /spotify:track:([a-zA-Z0-9]+)/,
+      );
       if (!trackIdMatch) {
         return generateJSONResponse(
           { message: "Invalid track URI format" },
@@ -155,11 +162,18 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
         return generateJSONResponse({ message: "Subscriber-only" }, 403);
       }
 
-      // If not owner, verify they own the track
+      // If not owner, verify they own the track (non-owners can only remove one track at a time)
       if (!account.is_owner) {
-        // Verify the user owns this track
+        if (parsedTrackUris.length > 1) {
+          return generateJSONResponse(
+            { message: "You can only remove one track at a time" },
+            403,
+          );
+        }
+
+        // Verify the user owns the track
         const ownsTrack = await db.isTrackOwnedByUser(
-          parsedTrackUri,
+          parsedTrackUris[0],
           account.twitch_id,
         );
         if (!ownsTrack) {
@@ -179,25 +193,27 @@ export class SpotifyRemoveTrackEndpoint extends OpenAPIRoute {
         );
       }
 
-      console.log(`Attempting to remove track: ${parsedTrackUri}`);
+      console.log(`Attempting to remove tracks: ${parsedTrackUris.join(", ")}`);
 
       // Remove track from playlist
       await spotifyClient.playlists.removeItemsFromPlaylist(
         SPOTIFY_PLAYLIST_ID,
         {
-          tracks: [{ uri: parsedTrackUri }],
+          items: parsedTrackUris.map((uri) => ({
+            uri,
+          })),
         },
       );
 
       // Remove from database
-      await db.removePlaylistEntry(parsedTrackUri);
+      await db.removePlaylistEntries(parsedTrackUris);
 
       // Clear caches to force refresh
       await clearSpotifyPlaylistCache(SPOTIFY_PLAYLIST_ID, env);
       await clearSpotifyOwnershipCache(env);
 
       console.log(
-        `Track ${parsedTrackUri} removed from playlist by ${account.display_name} (${account.twitch_id})`,
+        `Tracks ${parsedTrackUris.join(", ")} removed from playlist by ${account.display_name} (${account.twitch_id})`,
       );
 
       return generateJSONResponse({ success: true }, 200);

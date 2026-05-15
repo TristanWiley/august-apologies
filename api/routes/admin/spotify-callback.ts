@@ -1,6 +1,6 @@
 import type { IRequest } from "itty-router";
 import { generateJSONResponse } from "../../utils/utils";
-import { type AccessToken } from "@spotify/web-api-ts-sdk";
+import { type AccessToken } from "@tristanwiley/spotify-web-api-ts-sdk";
 import { isAdmin } from "./is-admin";
 import { contentJson, OpenAPIRoute } from "chanfana";
 import z from "zod";

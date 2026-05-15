@@ -1,4 +1,5 @@
 allowBuilds:
+  "@tristanwiley/spotify-web-api-ts-sdk": true
   esbuild: true
   sharp: false
   workerd: true

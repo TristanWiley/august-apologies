@@ -1,4 +1,4 @@
-import type { AccessToken } from "@spotify/web-api-ts-sdk";
+import type { AccessToken } from "@tristanwiley/spotify-web-api-ts-sdk";
 
 export interface KVTwitchAuthPermissions {
   access_token: string;

@@ -1,4 +1,8 @@
-import type { Playlist, SpotifyApi, Track } from "@spotify/web-api-ts-sdk";
+import type {
+  Playlist,
+  SpotifyApi,
+  Track,
+} from "@tristanwiley/spotify-web-api-ts-sdk";
 import type {
   KVTwitchAuthPermissions,
   KVSpotifyCredentials,
