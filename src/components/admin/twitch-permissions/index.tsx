@@ -79,6 +79,7 @@ export const TwitchPermissions: React.FC = () => {
           <li>Check if users are subscribers</li>
           <li>Get updates when someone subscribes</li>
           <li>Manage channel point redemptions (future stuff)</li>
+          <li>Get updates when someone uses bits (for custom powerups)</li>
         </ul>
         <p className="text-sm text-gray-200">
           Once you authorize, the site will handle the rest.
