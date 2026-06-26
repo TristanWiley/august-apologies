@@ -13,6 +13,7 @@ export const TwitchPermissions: React.FC = () => {
     "channel:read:subscriptions",
     "moderation:read",
     "channel:manage:redemptions",
+    "bits:read",
   ].join(" ");
 
   const twitchAuthURL = `https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=${twitchClientID}&redirect_uri=${encodeURIComponent(
