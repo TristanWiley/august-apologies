@@ -43,6 +43,7 @@
       "CLOUDFLARE_ZONE_ID",
       "CLOUDFLARE_API_KEY",
       "PLAYLIST_DISCORD_WEBHOOK",
+      "TWITCH_EVENTSUB_SECRET",
     ],
   },
   "env": {
@@ -63,6 +64,7 @@
           "CLOUDFLARE_ZONE_ID",
           "CLOUDFLARE_API_KEY",
           "PLAYLIST_DISCORD_WEBHOOK",
+          "TWITCH_EVENTSUB_SECRET",
         ],
       },
       "vars": {

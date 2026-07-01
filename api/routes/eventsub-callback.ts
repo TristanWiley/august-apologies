@@ -79,10 +79,7 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
       return generateJSONResponse({ message: "Malformed verification" }, 400);
     }
 
-    // Verify signature for notifications and revocations
-    const kv = env.PERMISSIONS_KV;
-
-    const secret = await kv.get("twitch:eventsub:secret");
+    const secret = env.TWITCH_EVENTSUB_SECRET;
     if (!secret) {
       console.error("EventSub secret missing");
       return generateJSONResponse({ message: "No secret configured" }, 500);
