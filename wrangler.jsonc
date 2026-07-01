@@ -32,6 +32,34 @@
     "SPOTIFY_CLIENT_ID": "281ecdc6defb4bfbb81374964b824e71",
     "TWITCH_BROADCASTER_ID": "194331558",
   },
+  "env": {
+    "staging": {
+      "workers_dev": true,
+      "vars": {
+        "TWITCH_CLIENT_ID": "ykfl1k53cdzikvv1uwrasqyv0d10jk",
+        "SPOTIFY_CLIENT_ID": "281ecdc6defb4bfbb81374964b824e71",
+        "TWITCH_BROADCASTER_ID": "38891062",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "6a58bd97-74ba-4346-8b86-48e6f1a3b172",
+          "remote": true,
+          "migrations_dir": "./api/db/drizzle",
+        },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "PERMISSIONS_KV",
+          "id": "35d7ee8e1786421b81f909ed2cc402b3",
+        },
+        {
+          "binding": "CACHE_KV",
+          "id": "7083858cf97b415cb39600e4081a625a",
+        },
+      ],
+    },
+  },
   "observability": {
     "logs": {
       "enabled": true,
