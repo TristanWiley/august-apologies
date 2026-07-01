@@ -125,7 +125,7 @@ export class AdminTwitchCallbackEndpoint extends OpenAPIRoute {
       obtained_at: Date.now(),
     };
 
-    if (user.id !== "194331558") {
+    if (user.id !== env.TWITCH_BROADCASTER_ID) {
       console.error("Unauthorized: not the channel owner", user.id, stored);
       return generateJSONResponse(
         { message: "Unauthorized: not the channel owner" },
