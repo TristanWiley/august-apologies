@@ -1,6 +1,6 @@
 import type { IRequest } from "itty-router";
 import { generateJSONResponse } from "../../utils/utils";
-import { getOverlaySpotifyCredentials } from "../../utils/overlay";
+import { getAdminSpotifyCredentials } from "../../utils/spotify";
 import { SpotifyApi } from "@tristanwiley/spotify-web-api-ts-sdk";
 import type {
   SimplifiedArtist,
@@ -71,7 +71,7 @@ export class OverlaySpotifyNowPlayingEndpoint extends OpenAPIRoute {
       return generateJSONResponse({ message: "Unauthorized" }, 401);
     }
 
-    const credentials = await getOverlaySpotifyCredentials(env);
+    const credentials = await getAdminSpotifyCredentials(env);
 
     if (!credentials) {
       return generateJSONResponse(

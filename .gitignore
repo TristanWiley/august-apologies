@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 
 .dev.vars
+.env
 wrangler/
 .wrangler/
 # Localflare generated files

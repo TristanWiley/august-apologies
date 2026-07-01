@@ -1,6 +1,6 @@
 import type { IRequest } from "itty-router";
 import { generateJSONResponse } from "../../utils/utils";
-import { getOverlaySpotifyCredentials } from "../../utils/overlay";
+import { getAdminSpotifyCredentials } from "../../utils/spotify";
 import { SpotifyApi } from "@tristanwiley/spotify-web-api-ts-sdk";
 import type {
   SimplifiedArtist,
@@ -54,7 +54,7 @@ export class ExtensionSpotifyNowPlayingEndpoint extends OpenAPIRoute {
   };
 
   async handle(_request: IRequest, env: Env) {
-    const credentials = await getOverlaySpotifyCredentials(env);
+    const credentials = await getAdminSpotifyCredentials(env);
 
     if (!credentials) {
       return generateJSONResponse(

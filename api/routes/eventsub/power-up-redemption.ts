@@ -1,4 +1,7 @@
+import { SpotifyApi } from "@tristanwiley/spotify-web-api-ts-sdk";
 import type { PowerUpRedemptionWebhookPayload } from "../../types/twitch";
+import { getAdminSpotifyCredentials } from "../../utils/spotify";
+import { generateJSONResponse } from "../../utils/utils";
 
 const SAMPLE_POWER_UP_REDEMPTION = {
   subscription: {
@@ -37,7 +40,7 @@ const SAMPLE_POWER_UP_REDEMPTION = {
   },
 };
 
-export const PowerUpRedemptionHandler = (
+export const PowerUpRedemptionHandler = async (
   payload: PowerUpRedemptionWebhookPayload,
   env: Env,
 ) => {
@@ -45,10 +48,34 @@ export const PowerUpRedemptionHandler = (
 
   const { event } = payload;
 
-  const isProd = event.broadcaster_user_id === "194331558";
+  // const isProd = event.broadcaster_user_id === "194331558";
 
-  if (!isProd) {
-    console.info("This is not prod");
+  // if (!isProd) {
+  //   console.info("This is not prod");
+  //   return;
+  // }
+
+  const credentials = await getAdminSpotifyCredentials(env);
+
+  if (!credentials) {
+    return generateJSONResponse(
+      { message: "Spotify credentials not configured" },
+      500,
+    );
+  }
+
+  if (event.custom_power_up.id !== "52f878b7-a65c-43e9-8019-5020ed01e9ab") {
     return;
   }
+
+  const spotifyClient = SpotifyApi.withAccessToken(
+    env.SPOTIFY_CLIENT_ID,
+    credentials,
+  );
+
+  console.info(
+    "Mock: Player Skip",
+    (await spotifyClient.currentUser.profile()).display_name,
+  );
+  // await spotifyClient.player.skipToNext("");
 };
