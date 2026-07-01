@@ -41,3 +41,54 @@ export interface TwitchHelixStreamsData {
 export interface TwitchHelixStreamsResponse {
   data: TwitchHelixStreamsData[];
 }
+
+/**
+ * PowerUpRedemptionWebhookPayload
+ */
+
+export interface PowerUpRedemptionWebhookPayload {
+  subscription: Subscription;
+  event: Event;
+}
+
+export interface Event {
+  id: string;
+  broadcaster_user_id: string;
+  broadcaster_user_login: string;
+  broadcaster_user_name: string;
+  user_id: string;
+  user_login: string;
+  user_name: string;
+  user_input: string;
+  status: string;
+  custom_power_up: CustomPowerUp;
+  redeemed_at: Date;
+}
+
+export interface CustomPowerUp {
+  id: string;
+  title: string;
+  bits: number;
+  prompt: string;
+}
+
+export interface Subscription {
+  id: string;
+  type: string;
+  version: string;
+  status: string;
+  cost: number;
+  condition: Condition;
+  transport: Transport;
+  created_at: Date;
+}
+
+export interface Condition {
+  broadcaster_user_id: string;
+  reward_id: string;
+}
+
+export interface Transport {
+  method: string;
+  callback: string;
+}

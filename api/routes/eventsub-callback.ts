@@ -3,6 +3,7 @@ import { generateJSONResponse } from "../utils/utils";
 import z from "zod";
 import { contentJson, OpenAPIRoute } from "chanfana";
 import { ErrorResponseSchema } from "../types/endpoints";
+import { PowerUpRedemptionHandler } from "./eventsub/power-up-redemption";
 
 const EventSubCallbackEndpointRequestSchema = z.object({
   headers: z.object({
@@ -13,6 +14,10 @@ const EventSubCallbackEndpointRequestSchema = z.object({
   }),
   text: z.string().max(1000),
 });
+
+const EventSubHandlerMapping: Record<string, Function> = {
+  "channel.custom_power_up_redemption.add": PowerUpRedemptionHandler,
+};
 
 export class EventSubCallbackEndpoint extends OpenAPIRoute {
   schema = {
@@ -53,6 +58,7 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
     const messageSignature = request.headers.get(
       "Twitch-Eventsub-Message-Signature",
     );
+    const eventType = request.headers.get("Twitch-Eventsub-Subscription-Type");
 
     const bodyText = await request.text();
 
@@ -82,8 +88,12 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
       return generateJSONResponse({ message: "No secret configured" }, 500);
     }
 
-    if (!messageSignature || !messageId || !messageTimestamp) {
-      console.warn("Missing EventSub headers");
+    if (!messageSignature || !messageId || !messageTimestamp || !eventType) {
+      console.warn("Missing EventSub headers", {
+        messageSignature,
+        messageId,
+        messageTimestamp,
+      });
       return generateJSONResponse({ message: "Missing headers" }, 400);
     }
 
@@ -115,15 +125,19 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
         const parsed = JSON.parse(bodyText) as any;
         console.log("EventSub notification received", parsed);
         // TODO: handle specific event types (e.g., channel.subscribe)
+
+        if (eventType in EventSubHandlerMapping) {
+          await EventSubHandlerMapping[eventType](parsed, env);
+        }
       } catch (err) {
-        console.warn("Failed to parse EventSub notification", err);
+        console.error("Failed to parse EventSub notification", err);
       }
     } else if (messageType === "revocation") {
       try {
         const parsed = JSON.parse(bodyText) as any;
-        console.warn("EventSub subscription revoked", parsed);
+        console.error("EventSub subscription revoked", parsed);
       } catch (err) {
-        console.warn("Failed to parse EventSub revocation", err);
+        console.error("Failed to parse EventSub revocation", err, bodyText);
       }
     }
 
