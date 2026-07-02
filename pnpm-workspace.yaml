@@ -1,7 +1,11 @@
 packages: []
 allowBuilds:
-  "@tristanwiley/spotify-web-api-ts-sdk": true
   esbuild: true
   sharp: false
   workerd: true
+  '@tristanwiley/spotify-web-api-ts-sdk@https://codeload.github.com/TristanWiley/spotify-web-api-ts-sdk/tar.gz/fb505706963b9efc0b65ecb1845458207e9f60f2': true
 minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@tristanwiley/spotify-web-api-ts-sdk"
+onlyBuiltDependencies:
+  - "@tristanwiley/spotify-web-api-ts-sdk"

@@ -127,7 +127,7 @@ export class EventSubCallbackEndpoint extends OpenAPIRoute {
           await EventSubHandlerMapping[eventType](parsed, env);
         }
       } catch (err) {
-        console.error("Failed to parse EventSub notification", err);
+        console.error("Failed to parse EventSub notification", err, bodyText);
       }
     } else if (messageType === "revocation") {
       try {
